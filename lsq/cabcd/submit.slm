@@ -1,0 +1,11 @@
+#!/bin/bash
+#SBATCH -J cabcd_abalone           # job name
+#SBATCH -o cabcd_abalone.o%j       # output and error file name (%j expands to jobID)
+#SBATCH -n 4              # total number of mpi tasks requested
+#SBATCH -p development     # queue (partition) -- normal, development, etc.
+#SBATCH -t 00:05:00        # run time (hh:mm:ss) - 1.5 hours
+#SBATCH -A TG-ASC160045
+#SBATCH --mail-user=aditya08@berkeley.edu
+#SBATCH --mail-type=end    # email me when the job finishes
+
+ibrun -n 4 ./cabcd         # run the MPI executable named a.out
