@@ -3,15 +3,17 @@
 	
 	#include "mpi.h"
 	void cabcd(	double *X,
+				int m,
+				int n,
 				double *y,
-				double *lambda,
+				double lambda,
 				int s,
 				int b,
 				int maxit,
 				double tol,
 				int seed,
 				int freq,
-				double **w,
+				double *w,
 				MPI_Comm comm);
 
 #endif

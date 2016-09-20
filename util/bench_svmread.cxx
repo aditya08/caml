@@ -11,6 +11,8 @@ int main(int argc, char* argv[]){
 	char* fname = argv[1];
 	int m = atoi(argv[2]);
 	int n = atoi(argv[3]);
+	int flag = atoi(argv[4]);
+	int p = atoi(argv[5]);
 
 	double *A, *y;
 
@@ -24,6 +26,17 @@ int main(int argc, char* argv[]){
 	for(int i = 0; i < 2; ++i)
 		for(int j = 0; j < n; ++j)
 			std::cout << A[i*n + j] << std::endl;
+
+	int *cnts, *displs, *cnts2, *displs2;
+	cnts = Malloc(int, p);
+	cnts2 = Malloc(int, p);
+	displs = Malloc(int, p);
+	displs2 = Malloc(int, p);
+	staticLB_1d(m,n,p,flag, cnts, displs, cnts2, displs2);
+
+	for(int i = 0; i < p; ++i){
+		std::cout << cnts[i] << std::endl;
+	}
 
 	free(A); free(y);
 }

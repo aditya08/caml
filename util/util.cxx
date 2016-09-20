@@ -35,12 +35,9 @@ void libsvmread(const char* fname, int m, int n, double *A, int leny, double *y)
 	file.close();
 }
 
-void staticLB_1d(int m, int n, int npes, int flag, int **cnts, int **displs, int **cnts2, int **displs2)
+void staticLB_1d(int m, int n, int npes, int flag, int *cnts, int *displs, int *cnts2, int *displs2)
 {
-	cnnts = &Malloc(int, npes);
-	cnnts2 = &Malloc(int, npes);
-	displs = &Malloc(int, npes);
-	displs2 = &Malloc(int, npes);
+	int mm, nn;
 	
 	if (flag){
 		mm = n;
@@ -53,17 +50,19 @@ void staticLB_1d(int m, int n, int npes, int flag, int **cnts, int **displs, int
 
 	for (int i = 0; i < mm%npes; ++i)
 	{
-		cnnts[i] = (mm/npes + 1)*nn;
-		cnnts2[i] = (mm/npes + 1);
+		cnts[i] = (mm/npes + 1)*nn;
+		cnts2[i] = (mm/npes + 1);
 		displs[i] = (i*(mm/npes + 1))*nn;
 		displs2[i] = (i*(mm/npes + 1));
+		//std::cout << cnts[i] << std::endl;
 	}
 
 	for (int i = mm%npes; i < npes; ++i)
 	{
-		cnnts[i] = (mm/npes)*nn;
-		cnnts2[i] = mm/npes;
+		cnts[i] = (mm/npes)*nn;
+		cnts2[i] = mm/npes;
 		displs[i] = ((mm%npes)*(mm/npes + 1) + (i - mm%npes)*mm/npes)*nn;
 		displs2[i] = ((mm%npes)*(mm/npes + 1) + (i - mm%npes)*mm/npes);
+		//std::cout << cnts[i] << std::endl;
 	}
 }

@@ -1,6 +1,6 @@
 CC = CC
 OPT = -O3  -unroll-aggressive -qopt-prefetch
-CXXFLAGS = -Wall -g $(OPT) -mkl=sequential#-I$(MKL_INC)
+CXXFLAGS = -fPIC -Wall -g $(OPT) -mkl=sequential#-I$(MKL_INC)
 # librt is needed for clock_gettime
 LDLIBS = -lrt -qopenmp -mkl=sequential
 
@@ -18,6 +18,10 @@ bench_svmread : bench_svmread.o util.o
 
 %.o : %.cxx util.h
 	$(CC) -c $(CXXFLAGS) $<
+
+libutil : util.o
+	$(CC) -o $@ $^ $(LDLIBS) -shared
+	ar -rv libutil.so libutil
 
 .PHONY : clean
 clean:
