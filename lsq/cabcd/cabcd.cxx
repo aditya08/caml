@@ -66,31 +66,33 @@ void cabcd(	double *X,	//input args
 	
 	int iter = 0;
 	
-
-	
 	while(iter < maxit){
 		for(int i = 0; i < s*b; ++i){
 			//TODO: need to sample without replacement
 			index[i] = lrand48()%m;
+			std::cout << "rank = " << rank << " index = " << index[i] << " local cols = " << len << std::endl;
 			dcopy(&len, X + index[i], &m, Xsamp + i, &gram_size);
-			G[i + i*s*b] = 1.;
+			if(rank == 0)
+				G[i + i*s*b] = 1.;
 			wsamp[i] = w[index[i]];
 		}
 
-		std::cout << "X[0] = " << X[0] << " X[1] = " << X[1] << std::endl;  
+		//std::cout << "X[0] = " << X[0] << " X[1] = " << X[1] << std::endl;  
 		// Compute (s*b) x (s*b) Gram matrix
 		
 		//std::cout << "Calling DGEMM, lambda = " << lambda << " maxit = " << maxit  << " s = " << s << std::endl;
 		dgemm(&transa, &transb, &gram_size, &gram_size, &len, &alp, Xsamp, &gram_size, Xsamp, &gram_size, &lambda, G, &gram_size); 
+			for(int i = 0; i < s*b; ++i){
+				for(int j = 0; j < s*b; ++j)
+					std::cout << G[j*s*b + i] << " ";
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
 		
+		MPI_Barrier(comm);
 		//std::cout << "dot product" << (1./n)*ddot(&len, Xsamp + 0, &gram_size, Xsamp + 1, &gram_size)+lambda << std::endl;
 
 
-		for(int i = 0; i < s*b; ++i){
-			for(int j = 0; j < s*b; ++j)
-				std::cout << G[j*s*b + i] << " ";
-			std::cout << std::endl;
-		}
 
 		// Compute y and alpha components of residual based on sampled rows.
 		//std::cout << "Calling DGEMV" << std::endl;
@@ -100,8 +102,15 @@ void cabcd(	double *X,	//input args
 		// Reduce and Broadcast: Sum partial Gram and partial residual components.
 		//std::cout << "Calling ALLREDUCE" << std::endl;
 		MPI_Allreduce(G,recvG,s*b*(s*b+2), MPI_DOUBLE, MPI_SUM, comm);
-		
-		dcopy(&ngram, recvG, &incx, G, &incx);
+		if(rank == 0){
+			std::cout << "reduced" << std::endl;
+			for(int i = 0; i < s*b; ++i){
+				for(int j = 0; j < s*b+2; ++j)
+					std::cout << recvG[j*s*b + i] << " ";
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
+		}
 		/*
 		 * Inner s-step loop
 		 * Perfomed redundantly on all processors
@@ -112,19 +121,34 @@ void cabcd(	double *X,	//input args
 		daxpy(&gram_size, &neg, recvG + s*b*s*b, &incx, recvG + s*b*(s*b+1), &incx);
 		
 		dcopy(&gram_size, recvG + s*b*(s*b+1), &incx, del_w, &incx);
+			std::cout << "residual on rank " << rank << " iter " << iter << std::endl;
+			for(int i = 0; i < s*b; ++i){
+					std::cout << del_w[i] << " ";
+				std::cout << std::endl;
+			}
+			std::cout << std::endl;
+		
+
 
 		//compute solution to first (b) x (b) subproblem
+		std::cout << "recvG[0] = " << recvG[0] << std::endl;
+		std::cout << "before del_w = ";
+		for(int j = 0; j < s*b; ++j){
+			std::cout << del_w[j] << " ";
+		}
+		std::cout << std::endl;
 		dpotrf(&uplo, &b, recvG, &b, &info);
 		assert(0==info);
 		
 		dpotrs(&uplo, &b, &nrhs, recvG, &b, del_w, &b, &info);
 		assert(0==info);
-		std::cout << "Iter count: " << iter << std::endl;
+		iter++;
+		//std::cout << "Iter count: " << iter << std::endl;
 		for(int i = 1; i < s; ++i){
 			
 			// Compute residual based on previous subproblem solution
 			lGcols = i*b;
-			dgemv(&transa, &b, &lGcols, &neg, G + i*b, &b, del_w, &incx, &one, del_w + i*b, &incx);
+			dgemv(&transa, &b, &lGcols, &neg, recvG + i*b, &gram_size, del_w, &incx, &one, del_w + i*b, &incx);
 			
 			// Correct residual if any sampled row in current block appeared in any previous blocks
 			for(int j = 0; j < i*b; ++j){
@@ -135,25 +159,21 @@ void cabcd(	double *X,	//input args
 			}
 
 			// Compute solution to next (b) x (b) subproblem
+			std::cout << "recvG[" << i << "] = " << recvG[lGcols + s*lGcols] << std::endl;
 			dpotrf(&uplo, &b, recvG + lGcols + s*lGcols, &b, &info);
 			assert(0==info);
 
 			dpotrs(&uplo, &b, &nrhs, recvG + lGcols + s*lGcols, &b, del_w + lGcols, &b, &info);
 			assert(0==info);
 			
-			iter+=1;
-			std::cout << "Iter count: " << iter << std::endl;
-			if(iter == maxit){
-				//gram_size = i*b;
-				//dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_w, &incx, &one, alpha, &incx);
-				free(alpha); free(Xsamp); free(G); free(recvG);
-				free(index); free(del_w); free(wsamp);
-				for(int i = 0; i < m; ++i)
-					std::cout << w[i] << " ";
-				std::cout << std::endl;
-				return;
-			}
+			iter++;
+			//std::cout << "Iter count: " << iter << std::endl;
 		}
+		std::cout << "after del_w = ";
+		for(int j = 0; j < s*b; ++j){
+			std::cout << del_w[j] << " ";
+		}
+		std::cout << std::endl;
 		
 		// Update w
 		std::cout << "w = ";
@@ -162,6 +182,17 @@ void cabcd(	double *X,	//input args
 			std::cout << w[index[j]] << " ";
 		}
 		std::cout << std::endl;
+		
+		if(iter == maxit){
+			//gram_size = i*b;
+			//dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_w, &incx, &one, alpha, &incx);
+			free(alpha); free(Xsamp); free(G); free(recvG);
+			free(index); free(del_w); free(wsamp);
+			for(int i = 0; i < m; ++i)
+				std::cout << w[i] << " ";
+			std::cout << std::endl;
+			return;
+		}
 
 		// Update local alpha
 		dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_w, &incx, &one, alpha, &incx);
@@ -244,6 +275,7 @@ int main (int argc, char* argv[])
 	double scatterstp = MPI_Wtime();
 	std::cout << "Finished Scatter of X and y in " << scatterstp - scatterst << " seconds." << std::endl;
 
+	std::cout << "Processor " << rank << " X[5] = " << localX[5] << std::endl;
 
 	if(rank == 0)
 		free(X);
@@ -258,11 +290,11 @@ int main (int argc, char* argv[])
 
 	std::cout << "Calling CA-BCD with " << n <<  "-by-" << m << " matrix X." << std::endl;
 	algst = MPI_Wtime();
-	cabcd(localX, n, m, y, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
+	cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
 	algstp = MPI_Wtime();
-
+	std::cout << "w = ";
 	for(int i = 0; i < n; ++i)
-		std::cout << w[i];
+		std::cout << w[i] << " ";
 	std::cout << std::endl;
 
 	free(localX); free(y);
