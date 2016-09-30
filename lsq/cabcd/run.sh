@@ -41,6 +41,6 @@
 
 #OUT=`srun -n $P --cpu-freq=2200000 ./cabcd $fname  $n $m $lambda $maxit $tol $seed $freq $blk $s $niters`
 
-srun -n $1 --cpu-freq=2200000 ./cabcd $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12}
+srun -n $1 -N ${13} --cpu-freq=2200000 ./cabcd $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12}
 #sed 's/.*: \(.*\)\n/\1/g' << $OUT
 #echo $OUT

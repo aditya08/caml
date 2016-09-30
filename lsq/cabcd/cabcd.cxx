@@ -29,6 +29,7 @@ void cabcd(	double *X,	//input args
 	MPI_Comm_size(comm, &npes);
 	MPI_Comm_rank(comm, &rank);
 
+
 	double *alpha, *res,  *obj_err, *sol_err;
 	double *del_w;
 
@@ -328,19 +329,7 @@ int main (int argc, char* argv[])
 	s = atoi(argv[10]);
 	int niter = atoi(argv[11]);
 
-	assert(0==Malloc_aligned(double, y, m, ALIGN));
-	assert(0==Malloc_aligned(double, X, m*n, ALIGN));
 	
-	if(rank == 0){
-		std::cout << "Reading file on rank 0" << std::endl;
-		double iost = MPI_Wtime();
-		libsvmread(fname, m, n, X, m, y);
-		double iostp = MPI_Wtime();
-		std::cout << "Finished reading file in " << iostp - iost << " seconds." << std::endl;
-	}
-
-	//compute scatter offsets
-
 	int flag = 0;
 	cnts = Malloc(int, npes);
 	cnts2 = Malloc(int, npes);
@@ -352,19 +341,34 @@ int main (int argc, char* argv[])
 	assert(0==Malloc_aligned(double, localX, cnts[rank], ALIGN));
 	assert(0==Malloc_aligned(double, localy, cnts2[rank], ALIGN));
 	
-	double scatterst = MPI_Wtime();
-	MPI_Scatterv(X, cnts, displs, MPI_DOUBLE, localX, cnts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	MPI_Scatterv(y, cnts2, displs2, MPI_DOUBLE, localy, cnts2[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
-	double scatterstp = MPI_Wtime();
-	
-	if(rank == 0)
-		std::cout << "Finished Scatter of X and y in " << scatterstp - scatterst << " seconds." << std::endl;
+	if(rank == 0 && strcmp(fname, "none") != 0){
+		assert(0==Malloc_aligned(double, y, m, ALIGN));
+		assert(0==Malloc_aligned(double, X, m*n, ALIGN));
+		std::cout << "Reading file on rank 0" << std::endl;
+		double iost = MPI_Wtime();
+		libsvmread(fname, m, n, X, m, y);
+		double iostp = MPI_Wtime();
+		std::cout << "Finished reading file in " << iostp - iost << " seconds." << std::endl;
+	}
+	//compute scatter offsets
 
-	//std::cout << "Processor " << rank << " X[5] = " << localX[5] << std::endl;
-
-	if(rank == 0)
-		free(X);
-
+	if(strcmp(fname, "none") != 0){
+		double scatterst = MPI_Wtime();
+		MPI_Scatterv(X, cnts, displs, MPI_DOUBLE, localX, cnts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
+		MPI_Scatterv(y, cnts2, displs2, MPI_DOUBLE, localy, cnts2[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
+		double scatterstp = MPI_Wtime();
+		if(rank == 0){
+			std::cout << "Finished Scatter of X and y in " << scatterstp - scatterst << " seconds." << std::endl;
+			free(X); free(y);
+		}
+	}
+	else{
+		srand48(seed+rank);
+		for(int i = 0; i < cnts[rank]; ++i)
+			localX[i] = drand48();
+		for(int i = 0; i < cnts2[rank]; ++i)
+			localy[i] = drand48();
+	}
 	double algst, algstp;
 	double *w;
 	assert(0==Malloc_aligned(double, w, n, ALIGN));
@@ -412,7 +416,7 @@ int main (int argc, char* argv[])
 	}
 	*/
 
-	free(localX); free(y);
+	free(localX); free(localy);
 	free(cnts); free(displs);
 	free(cnts2); free(displs2);
 	
