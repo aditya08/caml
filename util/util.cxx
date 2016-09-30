@@ -15,7 +15,7 @@ void libsvmread(const char* fname, int m, int n, double *A, int leny, double *y)
 	std::size_t pos;
 
 	assert(0!=file.is_open());
-	std::cout << "about to read from file" << std::endl;
+	//std::cout << "about to read from file" << std::endl;
 	
 	while(file){
 		file >> line;
@@ -39,10 +39,12 @@ void staticLB_1d(int m, int n, int npes, int flag, int *cnts, int *displs, int *
 {
 	int mm, nn;
 	
+	//1D-block row layout
 	if (flag){
 		mm = n;
 		nn = m;
 	}
+	//1D-block column layout
 	else{
 		mm = m;
 		nn = n;
@@ -50,8 +52,8 @@ void staticLB_1d(int m, int n, int npes, int flag, int *cnts, int *displs, int *
 
 	for (int i = 0; i < mm%npes; ++i)
 	{
-		cnts[i] = (mm/npes + 1)*nn;
-		cnts2[i] = (mm/npes + 1);
+		cnts[i] = ((mm/npes) + 1)*nn;
+		cnts2[i] = ((mm/npes) + 1);
 		displs[i] = (i*(mm/npes + 1))*nn;
 		displs2[i] = (i*(mm/npes + 1));
 		//std::cout << cnts[i] << std::endl;
@@ -61,8 +63,8 @@ void staticLB_1d(int m, int n, int npes, int flag, int *cnts, int *displs, int *
 	{
 		cnts[i] = (mm/npes)*nn;
 		cnts2[i] = mm/npes;
-		displs[i] = ((mm%npes)*(mm/npes + 1) + (i - mm%npes)*mm/npes)*nn;
-		displs2[i] = ((mm%npes)*(mm/npes + 1) + (i - mm%npes)*mm/npes);
-		//std::cout << cnts[i] << std::endl;
+		displs[i] = (((mm%npes)*(mm/npes + 1)) + ((i - mm%npes)*(mm/npes)))*nn;
+		displs2[i] = (((mm%npes)*(mm/npes + 1)) + ((i - mm%npes)*(mm/npes)));
+		//std::cout << displs2[i] << std::endl;
 	}
 }

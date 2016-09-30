@@ -35,8 +35,14 @@ int main(int argc, char* argv[]){
 	staticLB_1d(m,n,p,flag, cnts, displs, cnts2, displs2);
 
 	for(int i = 0; i < p; ++i){
-		std::cout << cnts[i] << std::endl;
+		std::cout  << "cnts2[" << i << "] = "<< cnts2[i] << " ";
 	}
+	std::cout << std::endl;
+
+	for(int i = 0; i < p; ++i){
+		std::cout  << "displs2[" << i << "] = "<< displs2[i] << " ";
+	}
+	std::cout << std::endl;
 
 	free(A); free(y);
 }

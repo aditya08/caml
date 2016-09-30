@@ -65,12 +65,29 @@ void cabcd(	double *X,	//input args
 	double gramst, gramstp, gramagg = 0.;
 	double innerst, innerstp, inneragg = 0.;
 	int iter = 0;
+	int offset = 0;
+	
+	int cursamp, count;
 	//std::cout << "local cols = " << len << std::endl;
 	while(1){
+		gramst = MPI_Wtime();
+		for(int i = 0; i < s; ++i){
+			cursamp = 0;
+			count = 0;
+			while(cursamp < b){
+				if(((m-count)*drand48()) >= (b - cursamp))
+					++count;
+				else{
+					index[cursamp + i*b] = count;
+					//std::cout << count << std::endl;
+					++count; ++cursamp;
+				}
+			}
+		}
+
+
 		for(int i = 0; i < s*b; ++i){
 			//TODO: need to sample without replacement
-			index[i] = lrand48()%m;
-			
 			//if(rank ==0)
 			//	std::cout << "index = " << index[i] << std::endl;
 			dcopy(&len, X + index[i], &m, Xsamp + i, &gram_size);
@@ -82,7 +99,6 @@ void cabcd(	double *X,	//input args
 		
 		//std::cout << "Calling DGEMM, lambda = " << lambda << " maxit = " << maxit  << " s = " << s << std::endl;
 		
-		gramst = MPI_Wtime();
 		dgemm(&transa, &transb, &gram_size, &gram_size, &len, &alp, Xsamp, &gram_size, Xsamp, &gram_size, &zero, G, &gram_size); 
 		//std::cout << "dot product" << (1./n)*ddot(&len, Xsamp + 0, &gram_size, Xsamp + 1, &gram_size)+lambda << std::endl;
 
@@ -102,8 +118,10 @@ void cabcd(	double *X,	//input args
 		commstp = MPI_Wtime();
 		commagg += commstp - commst;
 
+		innerst = MPI_Wtime();
 		for(int i =0; i < s*b; ++i)
 				recvG[i + i*s*b] += lambda;
+		
 		/*
 		if(rank == 0){
 			for(int i = 0; i < s*b; ++i){
@@ -135,7 +153,6 @@ void cabcd(	double *X,	//input args
 		
 		//combine residual updates into one vector
 
-		innerst = MPI_Wtime();
 		daxpy(&gram_size, &lambda, wsamp, &incx, recvG + s*b*s*b, &incx);
 		daxpy(&gram_size, &neg, recvG + s*b*s*b, &incx, recvG + s*b*(s*b+1), &incx);
 		
@@ -161,12 +178,13 @@ void cabcd(	double *X,	//input args
 		std::cout << std::endl;
 		*/
 
-		dpotrf(&uplo, &b, recvG, &b, &info);
+		dpotrf(&uplo, &b, recvG, &gram_size, &info);
 		assert(0==info);
 		
-		dpotrs(&uplo, &b, &nrhs, recvG, &b, del_w, &b, &info);
+		dpotrs(&uplo, &b, &nrhs, recvG, &gram_size, del_w, &b, &info);
 		assert(0==info);
-		w[index[0]] = w[index[0]] + del_w[0];
+		for(int i = 0; i < b; ++i)
+			w[index[i]] = w[index[i]] + del_w[i];
 		iter++;
 		innerstp = MPI_Wtime();
 		inneragg += innerstp - innerst;
@@ -207,13 +225,14 @@ void cabcd(	double *X,	//input args
 
 			// Compute solution to next (b) x (b) subproblem
 			//std::cout << "recvG[" << i << "] = " << recvG[lGcols + s*lGcols] << std::endl;
-			dpotrf(&uplo, &b, recvG + lGcols + s*lGcols, &b, &info);
+			dpotrf(&uplo, &b, recvG + lGcols + s*b*lGcols, &gram_size, &info);
 			assert(0==info);
 
-			dpotrs(&uplo, &b, &nrhs, recvG + lGcols + s*lGcols, &b, del_w + lGcols, &b, &info);
+			dpotrs(&uplo, &b, &nrhs, recvG + lGcols + s*b*lGcols, &gram_size, del_w + lGcols, &b, &info);
 			assert(0==info);
 			
-			w[index[i]] = w[index[i]] + del_w[i];
+			for(int j = 0; j < b; ++j)
+				w[index[i*b + j]] = w[index[i*b + j]] + del_w[i*b + j];
 			iter++;
 			inneragg += MPI_Wtime() - innerst;
 			if(iter == maxit){
@@ -370,12 +389,15 @@ int main (int argc, char* argv[])
 	algst = MPI_Wtime();
 	for(int i = 0; i < niter; ++i){
 		cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
+		
+		/*
 		if(rank == 0){
 			std::cout << "w = ";
 			for(int i = 0; i < n; ++i)
 				printf("%.4f ", w[i]);
 			std::cout << std::endl;
 		}
+		*/
 	}
 	algstp = MPI_Wtime();
 		
