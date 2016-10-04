@@ -1,0 +1,253 @@
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Running strong scaling experiments
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Calling CA-BCD with 1024-by-49152 matrix X and s = 1
+Outer loop computation time: 0.296647
+Inner loop computation time: 0.11799
+MPI_Allreduce time: 1.23949
+Outer loop computation time: 0.230929
+Inner loop computation time: 0.075845
+MPI_Allreduce time: 1.22135
+Outer loop computation time: 0.230706
+Inner loop computation time: 0.0755603
+MPI_Allreduce time: 1.17684
+Outer loop computation time: 0.23094
+Inner loop computation time: 0.0757689
+MPI_Allreduce time: 1.22286
+Outer loop computation time: 0.230598
+Inner loop computation time: 0.0758662
+MPI_Allreduce time: 1.35352
+Outer loop computation time: 0.230618
+Inner loop computation time: 0.0758915
+MPI_Allreduce time: 1.43116
+
+Total CA-BCD time: 1.59467
+
+
+Strong scale s = 2
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Calling CA-BCD with 1024-by-49152 matrix X and s = 2
+Outer loop computation time: 0.333449
+Inner loop computation time: 0.198442
+MPI_Allreduce time: 0.83452
+Outer loop computation time: 0.188153
+Inner loop computation time: 0.0665982
+MPI_Allreduce time: 0.805301
+Outer loop computation time: 0.188
+Inner loop computation time: 0.0665481
+MPI_Allreduce time: 0.829317
+Outer loop computation time: 0.187857
+Inner loop computation time: 0.0666943
+MPI_Allreduce time: 0.885791
+Outer loop computation time: 0.187714
+Inner loop computation time: 0.0666127
+MPI_Allreduce time: 0.752956
+Outer loop computation time: 0.187665
+Inner loop computation time: 0.0665612
+MPI_Allreduce time: 0.862925
+
+Total CA-BCD time: 1.08609
+
+
+Strong scale s = 3
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Calling CA-BCD with 1024-by-49152 matrix X and s = 3
+Outer loop computation time: 0.225832
+Inner loop computation time: 0.095799
+MPI_Allreduce time: 0.422246
+Outer loop computation time: 0.18151
+Inner loop computation time: 0.0605772
+MPI_Allreduce time: 0.37498
+Outer loop computation time: 0.181345
+Inner loop computation time: 0.0607176
+MPI_Allreduce time: 0.38818
+Outer loop computation time: 0.181184
+Inner loop computation time: 0.0607879
+MPI_Allreduce time: 0.397287
+Outer loop computation time: 0.181304
+Inner loop computation time: 0.0606189
+MPI_Allreduce time: 0.372895
+Outer loop computation time: 0.181397
+Inner loop computation time: 0.0605314
+MPI_Allreduce time: 0.352717
+
+Total CA-BCD time: 0.622765
+
+
+Strong scale s = 4
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Calling CA-BCD with 1024-by-49152 matrix X and s = 4
+Outer loop computation time: 0.252311
+Inner loop computation time: 0.136899
+MPI_Allreduce time: 0.494057
+Outer loop computation time: 0.167348
+Inner loop computation time: 0.0567217
+MPI_Allreduce time: 0.453218
+Outer loop computation time: 0.16727
+Inner loop computation time: 0.0567639
+MPI_Allreduce time: 0.469649
+Outer loop computation time: 0.167325
+Inner loop computation time: 0.0567844
+MPI_Allreduce time: 0.488644
+Outer loop computation time: 0.167094
+Inner loop computation time: 0.056742
+MPI_Allreduce time: 0.464333
+Outer loop computation time: 0.167266
+Inner loop computation time: 0.0569139
+MPI_Allreduce time: 0.518959
+
+Total CA-BCD time: 0.706198
+
+
+Strong scale s = 5
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Calling CA-BCD with 1024-by-49152 matrix X and s = 5
+Outer loop computation time: 0.278164
+Inner loop computation time: 0.119232
+MPI_Allreduce time: 0.538895
+Outer loop computation time: 0.170501
+Inner loop computation time: 0.0552077
+MPI_Allreduce time: 0.488896
+Outer loop computation time: 0.17037
+Inner loop computation time: 0.05511
+MPI_Allreduce time: 0.444934
+Outer loop computation time: 0.170549
+Inner loop computation time: 0.055232
+MPI_Allreduce time: 0.524711
+Outer loop computation time: 0.170616
+Inner loop computation time: 0.0552127
+MPI_Allreduce time: 0.479483
+Outer loop computation time: 0.170479
+Inner loop computation time: 0.0553746
+MPI_Allreduce time: 0.461134
+
+Total CA-BCD time: 0.708389
+
+
+Increasing block size to 3
+
+
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Calling CA-BCD with 1024-by-49152 matrix X and s = 1
+Outer loop computation time: 0.495006
+Inner loop computation time: 0.158953
+MPI_Allreduce time: 1.47461
+Outer loop computation time: 0.359866
+Inner loop computation time: 0.0882037
+MPI_Allreduce time: 1.01125
+Outer loop computation time: 0.359548
+Inner loop computation time: 0.0885799
+MPI_Allreduce time: 1.20271
+Outer loop computation time: 0.35962
+Inner loop computation time: 0.0884945
+MPI_Allreduce time: 1.10726
+Outer loop computation time: 0.35957
+Inner loop computation time: 0.0881898
+MPI_Allreduce time: 1.02449
+Outer loop computation time: 0.359604
+Inner loop computation time: 0.088382
+MPI_Allreduce time: 1.01497
+
+Total CA-BCD time: 1.52727
+
+
+Strong scale s = 2
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Calling CA-BCD with 1024-by-49152 matrix X and s = 2
+Outer loop computation time: 0.391726
+Inner loop computation time: 0.149323
+MPI_Allreduce time: 0.849519
+Outer loop computation time: 0.315479
+Inner loop computation time: 0.0839548
+MPI_Allreduce time: 0.785689
+Outer loop computation time: 0.314697
+Inner loop computation time: 0.0839133
+MPI_Allreduce time: 0.783514
+Outer loop computation time: 0.314465
+Inner loop computation time: 0.0836074
+MPI_Allreduce time: 0.772877
+Outer loop computation time: 0.314693
+Inner loop computation time: 0.0837831
+MPI_Allreduce time: 0.810312
+Outer loop computation time: 0.314524
+Inner loop computation time: 0.0834289
+MPI_Allreduce time: 0.746703
+
+Total CA-BCD time: 1.18276
+
+
+Strong scale s = 3
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Calling CA-BCD with 1024-by-49152 matrix X and s = 3
+Outer loop computation time: 0.342378
+Inner loop computation time: 0.117279
+MPI_Allreduce time: 0.67082
+Outer loop computation time: 0.316504
+Inner loop computation time: 0.0775492
+MPI_Allreduce time: 0.626009
+Outer loop computation time: 0.316531
+Inner loop computation time: 0.0773852
+MPI_Allreduce time: 0.619118
+Outer loop computation time: 0.316512
+Inner loop computation time: 0.0774815
+MPI_Allreduce time: 0.600588
+Outer loop computation time: 0.314045
+Inner loop computation time: 0.0778835
+MPI_Allreduce time: 0.662585
+Outer loop computation time: 0.313886
+Inner loop computation time: 0.0774193
+MPI_Allreduce time: 0.610712
+
+Total CA-BCD time: 1.02053
+
+
+Strong scale s = 4
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Calling CA-BCD with 1024-by-49152 matrix X and s = 4
+Outer loop computation time: 0.344735
+Inner loop computation time: 0.109463
+MPI_Allreduce time: 0.592113
+Outer loop computation time: 0.305118
+Inner loop computation time: 0.0741594
+MPI_Allreduce time: 0.534224
+Outer loop computation time: 0.307726
+Inner loop computation time: 0.0746291
+MPI_Allreduce time: 0.532704
+Outer loop computation time: 0.30551
+Inner loop computation time: 0.0741289
+MPI_Allreduce time: 0.508793
+Outer loop computation time: 0.304824
+Inner loop computation time: 0.0740128
+MPI_Allreduce time: 0.503789
+Outer loop computation time: 0.305028
+Inner loop computation time: 0.0740197
+MPI_Allreduce time: 0.578458
+
+Total CA-BCD time: 0.914635
+
+
+Strong scale s = 5
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Calling CA-BCD with 1024-by-49152 matrix X and s = 5
+Outer loop computation time: 0.400224
+Inner loop computation time: 0.143988
+MPI_Allreduce time: 0.530785
+Outer loop computation time: 0.33585
+Inner loop computation time: 0.0722027
+MPI_Allreduce time: 0.514408
+Outer loop computation time: 0.335534
+Inner loop computation time: 0.0720179
+MPI_Allreduce time: 0.473573
+Outer loop computation time: 0.335674
+Inner loop computation time: 0.0720425
+MPI_Allreduce time: 0.477318
+Outer loop computation time: 0.335622
+Inner loop computation time: 0.0720797
+MPI_Allreduce time: 0.517413
+Outer loop computation time: 0.335735
+Inner loop computation time: 0.0721207
+MPI_Allreduce time: 0.49938
+
+Total CA-BCD time: 0.907245
+
+

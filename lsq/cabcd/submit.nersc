@@ -1,30 +1,94 @@
 #!/bin/bash
-#SBATCH -J cabcd_small          # job name
-#SBATCH -o cabcd_small.o%j       # output and error file name (%j expands to jobID)
-#SBATCH -N 16          # total number of mpi tasks requested
-#SBATCH -p debug     # queue (partition) -- normal, development, etc.
-#SBATCH -t 00:08:00        # run time (hh:mm:ss) - 1.5 hours
+#SBATCH -J cabcd_smalls_strong_6k        # job name
+#SBATCH -o cabcd_smalls_strong_6k.o%j       # output and error file name (%j expands to jobID)
+#SBATCH -N 256         # total number of mpi tasks requested
+#SBATCH -p regular     # queue (partition) -- normal, development, etc.
+#SBATCH -t 00:30:00        # run time (hh:mm:ss) - 1.5 hours
 #SBATCH -A mp156
 #SBATCH -L SCRATCH
 #SBATCH --mail-user=aditya08@berkeley.edu
 #SBATCH --mail-type=end    # email me when the job finishes
 
-echo "Running on 384 cores"
+echo "Running strong scaling experiments"
          
-./run.sh 384 none 5000 1000 .004 40000 .001 100 10 1 1 5 16
+#./run.sh 384 none 3145728 1024 .004 40000 .001 100 10 1 1 5 16
+#./run.sh 768 none 3145728 1024 .004 40000 .001 100 10 1 1 5 32
+#./run.sh 1536 none 3145728 1024 .004 40000 .001 100 10 1 1 5 64
+#./run.sh 3072 none 3145728 1024 .004 40000 .001 100 10 1 1 5 128
+./run.sh 6144 none 3145728 1024 .004 40000 .001 100 10 1 1 3 256
 echo ""
 echo ""
-./run.sh 384 none 5000 1000 .004 40000 .001 100 10 1 2 5 16
-./run.sh 384 none 5000 1000 .004 40000 .001 100 10 1 3 5 16
-./run.sh 384 none 5000 1000 .004 40000 .001 100 10 1 4 5 16
+echo "Strong scale s = 2"
+#./run.sh 384 none 3145728 1024 .004 40000 .001 100 10 1 2 5 16
+#./run.sh 768 none 3145728 1024 .004 40000 .001 100 10 1 2 5 32
+#./run.sh 1536 none 3145728 1024 .004 40000 .001 100 10 1 2 5 64
+#./run.sh 3072 none 3145728 1024 .004 40000 .001 100 10 1 2 5 128
+./run.sh 6144 none 3145728 1024 .004 40000 .001 100 10 1 2 3 256
+echo ""
+echo ""
+echo "Strong scale s = 3"
+#./run.sh 384 none 3145728 1024 .004 40000 .001 100 10 1 3 5 16
+#./run.sh 768 none 3145728 1024 .004 40000 .001 100 10 1 3 5 32
+#./run.sh 1536 none 3145728 1024 .004 40000 .001 100 10 1 3 5 64
+#./run.sh 3072 none 3145728 1024 .004 40000 .001 100 10 1 3 5 128
+./run.sh 6144 none 3145728 1024 .004 40000 .001 100 10 1 3 3 256
+echo ""
+echo ""
+echo "Strong scale s = 4"
+#./run.sh 384 none 3145728 1024 .004 40000 .001 100 10 1 4 5 16
+#./run.sh 768 none 3145728 1024 .004 40000 .001 100 10 1 4 5 32
+#./run.sh 1536 none 3145728 1024 .004 40000 .001 100 10 1 4 5 64
+#./run.sh 3072 none 3145728 1024 .004 40000 .001 100 10 1 4 5 128
+./run.sh 6144 none 3145728 1024 .004 40000 .001 100 10 1 4 3 256
+echo ""
+echo ""
+echo "Strong scale s = 5"
+#./run.sh 384 none 3145728 1024 .004 40000 .001 100 10 1 5 5 16
+#./run.sh 768 none 3145728 1024 .004 40000 .001 100 10 1 5 5 32
+#./run.sh 1536 none 3145728 1024 .004 40000 .001 100 10 1 5 5 64
+#./run.sh 3072 none 3145728 1024 .004 40000 .001 100 10 1 5 5 128
+./run.sh 6144 none 3145728 1024 .004 40000 .001 100 10 1 5 3 256
 echo ""
 echo ""
 echo "Increasing block size to 3"
 echo ""
 echo ""
-./run.sh 384 none 5000 1000 .004 40000 .001 100 10 3 1 5 16
+#./run.sh 384 none 3145728 1024 .004 40000 .001 100 10 3 1 5 16
+#./run.sh 768 none 3145728 1024 .004 40000 .001 100 10 3 1 5 32
+#./run.sh 1536 none 3145728 1024 .004 40000 .001 100 10 3 1 5 64
+#./run.sh 3072 none 3145728 1024 .004 40000 .001 100 10 3 1 5 128
+./run.sh 6144 none 3145728 1024 .004 40000 .001 100 10 3 1 3 256
 echo ""
 echo ""
-./run.sh 384 none 5000 1000 .004 40000 .001 100 10 3 2 5 16
-./run.sh 384 none 5000 1000 .004 40000 .001 100 10 3 3 5 16
-./run.sh 384 none 5000 1000 .004 40000 .001 100 10 3 4 5 16
+echo "Strong scale s = 2"
+#./run.sh 384 none 3145728 1024 .004 40000 .001 100 10 3 5 5 16
+#./run.sh 768 none 3145728 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 1536 none 3145728 1024 .004 40000 .001 100 10 3 5 5 64
+#./run.sh 3072 none 3145728 1024 .004 40000 .001 100 10 3 5 5 128
+./run.sh 6144 none 3145728 1024 .004 40000 .001 100 10 3 2 3 256
+echo ""
+echo ""
+echo "Strong scale s = 3"
+#./run.sh 384 none 3145728 1024 .004 40000 .001 100 10 3 5 5 16
+#./run.sh 768 none 3145728 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 1536 none 3145728 1024 .004 40000 .001 100 10 3 5 5 64
+#./run.sh 3072 none 3145728 1024 .004 40000 .001 100 10 3 5 5 128
+./run.sh 6144 none 3145728 1024 .004 40000 .001 100 10 3 3 3 256
+echo ""
+echo ""
+echo "Strong scale s = 4"
+#./run.sh 384 none 3145728 1024 .004 40000 .001 100 10 3 5 5 16
+#./run.sh 768 none 3145728 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 1536 none 3145728 1024 .004 40000 .001 100 10 3 5 5 64
+#./run.sh 3072 none 3145728 1024 .004 40000 .001 100 10 3 5 5 128
+./run.sh 6144 none 3145728 1024 .004 40000 .001 100 10 3 4 3 256
+echo ""
+echo ""
+echo "Strong scale s = 5"
+#./run.sh 384 none 3145728 1024 .004 40000 .001 100 10 3 5 5 16
+#./run.sh 768 none 3145728 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 1536 none 3145728 1024 .004 40000 .001 100 10 3 5 5 64
+#./run.sh 3072 none 3145728 1024 .004 40000 .001 100 10 3 5 5 128
+./run.sh 6144 none 3145728 1024 .004 40000 .001 100 10 3 5 3 256
+echo ""
+echo ""
