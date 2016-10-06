@@ -83,22 +83,26 @@ void cabdcd(	double *X,	//input args
 					++count;
 				else{
 					index[cursamp + i*b] = count;
-					//std::cout << count << std::endl;
+					//std::cout << "Index = " << count << std::endl;
 					++count; ++cursamp;
 				}
 			}
 		}
 
-
+		//std::cout << "ysamp = ";
 		for(int i = 0; i < s*b; ++i){
 			//TODO: need to sample without replacement
 			//if(rank ==0)
 			//	std::cout << "index = " << index[i] << std::endl;
 			dcopy(&len, X + index[i], &n, Xsamp + i, &gram_size);
 			ysamp[i] = y[index[i]];
+			//std::cout << ysamp[i] << " ";
 			asamp[i] = alpha[index[i]];
 		}
+		//std::cout << std::endl;
 
+		//for(int i =0; i < s*b*len; ++i)
+		//	std::cout << "Xsamp[ " << i << "] = " << Xsamp[i] << std::endl;
 		//std::cout << "Xsamp[0] = " << Xsamp[0] << " Xsamp[1] = " << Xsamp[1] << std::endl;  
 		// Compute (s*b) x (s*b) Gram matrix
 		
@@ -127,6 +131,7 @@ void cabdcd(	double *X,	//input args
 		for(int i =0; i < s*b; ++i)
 				recvG[i + i*s*b] += 1./n;
 		
+		/*
 		if(rank == 0){
 			for(int i = 0; i < s*b; ++i){
 					for(int j = 0; j < s*b; ++j)
@@ -136,7 +141,7 @@ void cabdcd(	double *X,	//input args
 				std::cout << std::endl;
 		}
 		MPI_Barrier(comm);
-
+		*/
 		/*
 		if(rank == 0){
 			std::cout << "reduced" << std::endl;
@@ -160,13 +165,17 @@ void cabdcd(	double *X,	//input args
 		daxpy(&gram_size, &gam, ysamp, &incx, recvG + s*b*(s*b), &incx);
 		
 		dcopy(&gram_size, recvG + s*b*(s*b), &incx, del_a, &incx);
-		std::cout << "residual on rank " << rank << " iter " << iter << std::endl;
-		for(int i = 0; i < s*b; ++i){
-				std::cout << del_a[i] << " ";
+		
+		/*
+		if(rank == 0){
+			std::cout << "residual on rank " << rank << " iter " << iter << std::endl;
+			for(int i = 0; i < s*b; ++i){
+					std::cout << del_a[i] << " ";
+				std::cout << std::endl;
+			}
 			std::cout << std::endl;
 		}
-		std::cout << std::endl;
-
+		*/
 
 		//compute solution to first (b) x (b) subproblem
 		
@@ -187,13 +196,21 @@ void cabdcd(	double *X,	//input args
 		for(int i = 0; i < b; ++i)
 			alpha[index[i]] = alpha[index[i]] - del_a[i];
 		iter++;
+		
+		if(rank == 0){
+			std::cout << "del_a = ";
+			for(int i = 0; i < b; ++i)
+				std::cout << del_a[i] << " ";
+			std::cout << std::endl;
+		}
+		//std::cout << "del_a = " << del_a[0] << std::endl; 
 		innerstp = MPI_Wtime();
 		inneragg += innerstp - innerst;
 
 		if(iter == maxit){
 			//gram_size = i*b;
 			//dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_a, &incx, &one, alpha, &incx);
-			dgemv(&transb, &gram_size, &len, &rho, Xsamp, &gram_size, del_a, &incx, &one, w, &incx);
+			dgemv(&transb, &b, &len, &rho, Xsamp, &gram_size, del_a, &incx, &one, w, &incx);
 			free(alpha); free(Xsamp); free(G); free(recvG);
 			free(index); free(del_a); free(ysamp); free(asamp);
 			if(rank == 0){
@@ -209,13 +226,20 @@ void cabdcd(	double *X,	//input args
 			return;
 		}
 		//std::cout << "Iter count: " << iter << std::endl;
+		//std::cout << "del_a before = " << del_a[iter] << std::endl; 
+		if(rank == 0){
+			std::cout << "del_a before = ";
+			for(int i = b; i < s*b; ++i)
+				std::cout << del_a[i] << " ";
+			std::cout << std::endl;
+		}
 
 		for(int i = 1; i < s; ++i){
 			
 			// Compute residual based on previous subproblem solution
 			innerst = MPI_Wtime();
 			lGcols = i*b;
-			dgemv(&transa, &b, &lGcols, &one, recvG + i*b, &gram_size, del_a, &incx, &one, del_a + i*b, &incx);
+			dgemv(&transa, &b, &lGcols, &neg, recvG + i*b, &gram_size, del_a, &incx, &one, del_a + i*b, &incx);
 			
 			// Correct residual if any sampled row in current block appeared in any previous blocks
 			for(int j = 0; j < i*b; ++j){
@@ -235,11 +259,19 @@ void cabdcd(	double *X,	//input args
 			
 			for(int j = 0; j < b; ++j)
 				alpha[index[i*b + j]] = alpha[index[i*b + j]] - del_a[i*b + j];
+			if(rank == 0){
+				std::cout << "del_a = ";
+				for(int k = 0; k < b; ++k)
+					std::cout << del_a[i*b + k] << " ";
+				std::cout << std::endl;
+			}
+			//std::cout << "del_a = " << del_a[i] << std::endl; 
 			iter++;
 			inneragg += MPI_Wtime() - innerst;
 			if(iter == maxit){
-				//gram_size = i*b;
 				//dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_a, &incx, &one, alpha, &incx);
+				lGcols = (i + 1)*b;
+				dgemv(&transb, &lGcols, &len, &rho, Xsamp, &gram_size, del_a, &incx, &one, w, &incx);
 				free(alpha); free(Xsamp); free(G); free(recvG);
 				free(index); free(del_a); free(asamp); free(ysamp);
 				if(rank == 0){
@@ -346,6 +378,7 @@ int main (int argc, char* argv[])
 		std::cout << "Reading file on rank 0" << std::endl;
 		double iost = MPI_Wtime();
 		libsvmread(fname, m, n, X, m, y);
+		mkl_dimatcopy('C', 'T', n, m, 1.0, X, n, m); 
 		double iostp = MPI_Wtime();
 		std::cout << "Finished reading file in " << iostp - iost << " seconds." << std::endl;
 	}
@@ -353,15 +386,25 @@ int main (int argc, char* argv[])
 
 
 	if(strcmp(fname, "none") != 0){
-		mkl_dimatcopy('c', 't', m, n, 1.0, X, m, n); 
+		
+		//for(int i = 0; i < m*n; ++i)
+		//	std::cout << X[i] << " ";
+		//std::cout << std::endl;
 		double scatterst = MPI_Wtime();
+		
+		for(int i = 0; i < npes; ++i){
+			std::cout << cnts[i] << " ";
+		}
+		std::cout << std::endl;
+		
 		MPI_Scatterv(X, cnts, displs, MPI_DOUBLE, localX, cnts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
 		MPI_Bcast(y, m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 		std::cout << "cnts2[" << rank << "] = " << cnts2[rank] << std::endl;
+		std::cout << y[0] << std::endl;
 		double scatterstp = MPI_Wtime();
 		if(rank == 0){
 			std::cout << "Finished Scatter of X and y in " << scatterstp - scatterst << " seconds." << std::endl;
-			free(X); free(y);
+			//free(X); free(y);
 		}
 	}
 	else{
@@ -407,16 +450,21 @@ int main (int argc, char* argv[])
 	}
 	algstp = MPI_Wtime();
 		
-	if(rank == 0)
-		std::cout << std::endl << "Total CA-BDCD time: " << (algstp - algst)/niter  << std::endl;
 	if(rank == 0){
-		std::cout << "w = ";
-		for(int i = 0; i < n; ++i)
-			std::cout << w[i] << " ";
-		std::cout << std::endl;
+		std::cout << std::endl << "Total CA-BDCD time: " << (algstp - algst)/niter  << std::endl;
+		free(X); free(y);
 	}
-
-	free(localX); 
+	MPI_Barrier(comm);
+	MPI_Barrier(comm);
+	MPI_Barrier(comm);
+	MPI_Barrier(comm);
+	MPI_Barrier(comm);
+	std::cout << "w = ";
+	for(int i = 0; i < cnts2[rank]; ++i)
+		std::cout << w[i] << " ";
+	std::cout << std::endl;
+	MPI_Barrier(comm);
+	free(localX); free(w);
 	free(cnts); free(displs);
 	free(cnts2); free(displs2);
 	
