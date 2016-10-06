@@ -1,0 +1,339 @@
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Running s choice experiments
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 3.53144 seconds.
+Finished Scatter of X and y in 0.248556 seconds.
+Calling CA-BCD with 54-by-581012 matrix X and s = 1
+Outer loop computation time: 0.358075
+Inner loop computation time: 0.177799
+MPI_Allreduce time: 1.22783
+Outer loop computation time: 0.143606
+Inner loop computation time: 0.0751863
+MPI_Allreduce time: 1.13254
+Outer loop computation time: 0.144247
+Inner loop computation time: 0.074913
+MPI_Allreduce time: 1.04331
+Outer loop computation time: 0.143284
+Inner loop computation time: 0.0751305
+MPI_Allreduce time: 1.16113
+
+Total CA-BCD time: 1.33855
+
+
+ s = 4
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 2.94394 seconds.
+Finished Scatter of X and y in 0.276234 seconds.
+Calling CA-BCD with 54-by-581012 matrix X and s = 4
+Outer loop computation time: 0.318651
+Inner loop computation time: 0.166197
+MPI_Allreduce time: 0.413008
+Outer loop computation time: 0.0734017
+Inner loop computation time: 0.0609105
+MPI_Allreduce time: 0.352877
+Outer loop computation time: 0.0734568
+Inner loop computation time: 0.0610948
+MPI_Allreduce time: 0.348925
+Outer loop computation time: 0.0734174
+Inner loop computation time: 0.0609009
+MPI_Allreduce time: 0.358191
+
+Total CA-BCD time: 0.490921
+
+
+ s = 8
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 2.93074 seconds.
+Finished Scatter of X and y in 0.279615 seconds.
+Calling CA-BCD with 54-by-581012 matrix X and s = 8
+Outer loop computation time: 0.234287
+Inner loop computation time: 0.121942
+MPI_Allreduce time: 0.540251
+Outer loop computation time: 0.065671
+Inner loop computation time: 0.0598786
+MPI_Allreduce time: 0.410694
+Outer loop computation time: 0.0653861
+Inner loop computation time: 0.0593884
+MPI_Allreduce time: 0.508676
+Outer loop computation time: 0.0651217
+Inner loop computation time: 0.0592971
+MPI_Allreduce time: 0.385912
+
+Total CA-BCD time: 0.562608
+
+
+ s = 16
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 2.94325 seconds.
+Finished Scatter of X and y in 0.667442 seconds.
+Calling CA-BCD with 54-by-581012 matrix X and s = 16
+Outer loop computation time: 0.552256
+Inner loop computation time: 0.377665
+MPI_Allreduce time: 0.733575
+Outer loop computation time: 0.0814049
+Inner loop computation time: 0.0541179
+MPI_Allreduce time: 0.295462
+Outer loop computation time: 0.0812144
+Inner loop computation time: 0.0540991
+MPI_Allreduce time: 0.300492
+Outer loop computation time: 0.0829012
+Inner loop computation time: 0.0540552
+MPI_Allreduce time: 0.30924
+
+Total CA-BCD time: 0.439921
+
+
+ s = 32
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+cabcd: util.cxx:17: void libsvmread(const char *, int, int, double *, int, double *): Assertion `0!=file.is_open()' failed.
+srun: error: nid00013: task 0: Aborted
+srun: Terminating job step 2260104.4
+slurmstepd: error: *** STEP 2260104.4 ON nid00013 CANCELLED AT 2016-10-04T22:48:31 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: nid00286: tasks 2832-2855: Killed
+srun: error: nid00087: tasks 792-815: Killed
+srun: error: nid00237: tasks 1848-1871: Killed
+srun: error: nid00045: tasks 528-551: Killed
+srun: error: nid00046: tasks 552-575: Killed
+srun: error: nid00295: tasks 3048-3071: Killed
+srun: error: nid00287: tasks 2856-2879: Killed
+srun: error: nid00268: tasks 2400-2423: Killed
+srun: error: nid00273: tasks 2520-2543: Killed
+srun: error: nid00127: tasks 1272-1295: Killed
+srun: error: nid00291: tasks 2952-2975: Killed
+srun: error: nid00137: tasks 1320-1343: Killed
+srun: error: nid00136: tasks 1296-1319: Killed
+srun: error: nid00283: tasks 2760-2783: Killed
+srun: error: nid00149: tasks 1608-1631: Killed
+srun: error: nid00017: tasks 96-119: Killed
+srun: error: nid00240: tasks 1920-1943: Killed
+srun: error: nid00025: tasks 288-311: Killed
+srun: error: nid00141: tasks 1416-1439: Killed
+srun: error: nid00138: tasks 1344-1367: Killed
+srun: error: nid00080: tasks 624-647: Killed
+srun: error: nid00024: tasks 264-287: Killed
+srun: error: nid00090: tasks 864-887: Killed
+srun: error: nid00093: tasks 936-959: Killed
+srun: error: nid00249: tasks 2136-2159: Killed
+srun: error: nid00253: tasks 2232-2255: Killed
+srun: error: nid00092: tasks 912-935: Killed
+srun: error: nid00251: tasks 2184-2207: Killed
+srun: error: nid00082: tasks 672-695: Killed
+srun: error: nid00015: tasks 48-71: Killed
+srun: error: nid00277: tasks 2616-2639: Killed
+srun: error: nid00243: tasks 1992-2015: Killed
+srun: error: nid00014: tasks 24-47: Killed
+srun: error: nid00126: tasks 1248-1271: Killed
+srun: error: nid00276: tasks 2592-2615: Killed
+srun: error: nid00265: tasks 2328-2351: Killed
+srun: error: nid00095: tasks 984-1007: Killed
+srun: error: nid00290: tasks 2928-2951: Killed
+srun: error: nid00124: tasks 1200-1223: Killed
+srun: error: nid00281: tasks 2712-2735: Killed
+srun: error: nid00043: tasks 480-503: Killed
+srun: error: nid00150: tasks 1632-1655: Killed
+srun: error: nid00241: tasks 1944-1967: Killed
+srun: error: nid00028: tasks 360-383: Killed
+srun: error: nid00266: tasks 2352-2375: Killed
+srun: error: nid00238: tasks 1872-1895: Killed
+srun: error: nid00278: tasks 2640-2663: Killed
+srun: error: nid00255: tasks 2280-2303: Killed
+srun: error: nid00250: tasks 2160-2183: Killed
+srun: error: nid00158: tasks 1824-1847: Killed
+srun: error: nid00123: tasks 1176-1199: Killed
+srun: error: nid00267: tasks 2376-2399: Killed
+srun: error: nid00252: tasks 2208-2231: Killed
+srun: error: nid00139: tasks 1368-1391: Killed
+srun: error: nid00140: tasks 1392-1415: Killed
+srun: error: nid00274: tasks 2544-2567: Killed
+srun: error: nid00246: tasks 2064-2087: Killed
+srun: error: nid00083: tasks 696-719: Killed
+srun: error: nid00041: tasks 432-455: Killed
+srun: error: nid00244: tasks 2016-2039: Killed
+srun: error: nid00026: tasks 312-335: Killed
+srun: error: nid00044: tasks 504-527: Killed
+srun: error: nid00145: tasks 1512-1535: Killed
+srun: error: nid00142: tasks 1440-1463: Killed
+srun: error: nid00280: tasks 2688-2711: Killed
+srun: error: nid00247: tasks 2088-2111: Killed
+srun: error: nid00042: tasks 456-479: Killed
+srun: error: nid00099: tasks 1080-1103: Killed
+srun: error: nid00152: tasks 1680-1703: Killed
+srun: error: nid00027: tasks 336-359: Killed
+srun: error: nid00146: tasks 1536-1559: Killed
+srun: error: nid00271: tasks 2472-2495: Killed
+srun: error: nid00292: tasks 2976-2999: Killed
+srun: error: nid00084: tasks 720-743: Killed
+srun: error: nid00081: tasks 648-671: Killed
+srun: error: nid00029: tasks 384-407: Killed
+srun: error: nid00157: tasks 1800-1823: Killed
+srun: error: nid00016: tasks 72-95: Killed
+srun: error: nid00239: tasks 1896-1919: Killed
+srun: error: nid00047: tasks 576-599: Killed
+srun: error: nid00097: tasks 1032-1055: Killed
+srun: error: nid00096: tasks 1008-1031: Killed
+srun: error: nid00021: tasks 192-215: Killed
+srun: error: nid00156: tasks 1776-1799: Killed
+srun: error: nid00282: tasks 2736-2759: Killed
+srun: error: nid00151: tasks 1656-1679: Killed
+srun: error: nid00148: tasks 1584-1607: Killed
+srun: error: nid00269: tasks 2424-2447: Killed
+srun: error: nid00019: tasks 144-167: Killed
+srun: error: nid00144: tasks 1488-1511: Killed
+srun: error: nid00022: tasks 216-239: Killed
+srun: error: nid00125: tasks 1224-1247: Killed
+srun: error: nid00284: tasks 2784-2807: Killed
+srun: error: nid00294: tasks 3024-3047: Killed
+srun: error: nid00085: tasks 744-767: Killed
+srun: error: nid00089: tasks 840-863: Killed
+srun: error: nid00079: tasks 600-623: Killed
+srun: error: nid00086: tasks 768-791: Killed
+srun: error: nid00020: tasks 168-191: Killed
+srun: error: nid00143: tasks 1464-1487: Killed
+srun: error: nid00293: tasks 3000-3023: Killed
+srun: error: nid00270: tasks 2448-2471: Killed
+srun: error: nid00288: tasks 2880-2903: Killed
+srun: error: nid00122: tasks 1152-1175: Killed
+srun: error: nid00242: tasks 1968-1991: Killed
+srun: error: nid00285: tasks 2808-2831: Killed
+srun: error: nid00272: tasks 2496-2519: Killed
+srun: error: nid00275: tasks 2568-2591: Killed
+srun: error: nid00147: tasks 1560-1583: Killed
+srun: error: nid00100: tasks 1104-1127: Killed
+srun: error: nid00289: tasks 2904-2927: Killed
+srun: error: nid00101: tasks 1128-1151: Killed
+srun: error: nid00018: tasks 120-143: Killed
+srun: error: nid00098: tasks 1056-1079: Killed
+srun: error: nid00279: tasks 2664-2687: Killed
+srun: error: nid00248: tasks 2112-2135: Killed
+srun: error: nid00094: tasks 960-983: Killed
+srun: error: nid00153: tasks 1704-1727: Killed
+srun: error: nid00155: tasks 1752-1775: Killed
+srun: error: nid00264: tasks 2304-2327: Killed
+srun: error: nid00030: tasks 408-431: Killed
+srun: error: nid00091: tasks 888-911: Killed
+srun: error: nid00154: tasks 1728-1751: Killed
+srun: error: nid00254: tasks 2256-2279: Killed
+srun: error: nid00023: tasks 240-263: Killed
+srun: error: nid00245: tasks 2040-2063: Killed
+srun: error: nid00013: tasks 1-23: Killed
+srun: error: nid00088: tasks 816-839: Killed
+
+
+Increasing block size to 3
+
+
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 2.95488 seconds.
+Finished Scatter of X and y in 0.263478 seconds.
+Calling CA-BCD with 54-by-581012 matrix X and s = 1
+Outer loop computation time: 0.464238
+Inner loop computation time: 0.202437
+MPI_Allreduce time: 1.50145
+Outer loop computation time: 0.262025
+Inner loop computation time: 0.100886
+MPI_Allreduce time: 1.3625
+Outer loop computation time: 0.262359
+Inner loop computation time: 0.100765
+MPI_Allreduce time: 1.3582
+Outer loop computation time: 0.258237
+Inner loop computation time: 0.100663
+MPI_Allreduce time: 1.39954
+
+Total CA-BCD time: 1.74236
+
+
+ s = 4
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 3.05163 seconds.
+Finished Scatter of X and y in 0.270245 seconds.
+Calling CA-BCD with 54-by-581012 matrix X and s = 4
+Outer loop computation time: 0.492142
+Inner loop computation time: 0.233114
+MPI_Allreduce time: 0.896684
+Outer loop computation time: 0.205468
+Inner loop computation time: 0.0908608
+MPI_Allreduce time: 0.823413
+Outer loop computation time: 0.205153
+Inner loop computation time: 0.0911272
+MPI_Allreduce time: 0.977086
+Outer loop computation time: 0.205169
+Inner loop computation time: 0.0909398
+MPI_Allreduce time: 0.822727
+
+Total CA-BCD time: 1.17436
+
+
+ s = 8
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 2.93051 seconds.
+Finished Scatter of X and y in 0.250021 seconds.
+Calling CA-BCD with 54-by-581012 matrix X and s = 8
+Outer loop computation time: 0.441507
+Inner loop computation time: 0.141005
+MPI_Allreduce time: 0.879593
+Outer loop computation time: 0.215301
+Inner loop computation time: 0.0788045
+MPI_Allreduce time: 0.805796
+Outer loop computation time: 0.215573
+Inner loop computation time: 0.078243
+MPI_Allreduce time: 0.744932
+Outer loop computation time: 0.21578
+Inner loop computation time: 0.0782895
+MPI_Allreduce time: 0.721841
+
+Total CA-BCD time: 1.0545
+
+
+ s = 16
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 2.92943 seconds.
+Finished Scatter of X and y in 0.254169 seconds.
+Calling CA-BCD with 54-by-581012 matrix X and s = 16
+Outer loop computation time: 0.446321
+Inner loop computation time: 0.115987
+MPI_Allreduce time: 0.754256
+Outer loop computation time: 0.307203
+Inner loop computation time: 0.0716474
+MPI_Allreduce time: 0.534649
+Outer loop computation time: 0.307071
+Inner loop computation time: 0.0714741
+MPI_Allreduce time: 0.508739
+Outer loop computation time: 0.307407
+Inner loop computation time: 0.071471
+MPI_Allreduce time: 0.574099
+
+Total CA-BCD time: 0.920259
+
+
+ s = 32
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 2.9404 seconds.
+Finished Scatter of X and y in 0.24665 seconds.
+Calling CA-BCD with 54-by-581012 matrix X and s = 32
+Outer loop computation time: 0.654178
+Inner loop computation time: 0.140079
+MPI_Allreduce time: 0.70747
+Outer loop computation time: 0.488463
+Inner loop computation time: 0.0915756
+MPI_Allreduce time: 0.509882
+Outer loop computation time: 0.488076
+Inner loop computation time: 0.0913982
+MPI_Allreduce time: 0.605079
+Outer loop computation time: 0.488325
+Inner loop computation time: 0.0915451
+MPI_Allreduce time: 0.496194
+
+Total CA-BCD time: 1.11891
+
+

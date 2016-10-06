@@ -1,0 +1,138 @@
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Running s choice experiments
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 203.873 seconds.
+Finished Scatter of X and y in 0.537858 seconds.
+Calling CA-BCD with 28-by-11000000 matrix X and s = 1
+Outer loop computation time: 1.96291
+Inner loop computation time: 0.248042
+MPI_Allreduce time: 4.00325
+Outer loop computation time: 1.9547
+Inner loop computation time: 0.145072
+MPI_Allreduce time: 8.54112
+Outer loop computation time: 1.95381
+Inner loop computation time: 0.146127
+MPI_Allreduce time: 8.62684
+Outer loop computation time: 1.95498
+Inner loop computation time: 0.145288
+MPI_Allreduce time: 8.51755
+
+Total CA-BCD time: 10.6703
+
+
+ s = 4
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 205.096 seconds.
+Finished Scatter of X and y in 0.554255 seconds.
+Calling CA-BCD with 28-by-11000000 matrix X and s = 4
+Outer loop computation time: 1.49505
+Inner loop computation time: 0.210893
+MPI_Allreduce time: 1.55741
+Outer loop computation time: 1.4857
+Inner loop computation time: 0.0781178
+MPI_Allreduce time: 1.38715
+Outer loop computation time: 1.49712
+Inner loop computation time: 0.0785182
+MPI_Allreduce time: 2.84586
+Outer loop computation time: 1.49968
+Inner loop computation time: 0.0785723
+MPI_Allreduce time: 3.00766
+
+Total CA-BCD time: 3.98962
+
+
+ s = 8
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 205.223 seconds.
+Finished Scatter of X and y in 0.533636 seconds.
+Calling CA-BCD with 28-by-11000000 matrix X and s = 8
+Outer loop computation time: 1.68371
+Inner loop computation time: 0.18118
+MPI_Allreduce time: 0.893436
+Outer loop computation time: 1.68648
+Inner loop computation time: 0.0628848
+MPI_Allreduce time: 0.670639
+Outer loop computation time: 1.68673
+Inner loop computation time: 0.0628533
+MPI_Allreduce time: 0.684963
+Outer loop computation time: 1.68598
+Inner loop computation time: 0.0629201
+MPI_Allreduce time: 0.639646
+
+Total CA-BCD time: 2.41718
+
+
+ s = 16
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 203.542 seconds.
+Finished Scatter of X and y in 0.824365 seconds.
+Calling CA-BCD with 28-by-11000000 matrix X and s = 16
+Outer loop computation time: 3.69616
+Inner loop computation time: 0.1224
+MPI_Allreduce time: 4.45426
+Outer loop computation time: 1.90458
+Inner loop computation time: 0.0592802
+MPI_Allreduce time: 2.3322
+Outer loop computation time: 1.90507
+Inner loop computation time: 0.0595658
+MPI_Allreduce time: 2.2453
+Outer loop computation time: 1.90496
+Inner loop computation time: 0.0588691
+MPI_Allreduce time: 2.18853
+
+Total CA-BCD time: 4.22186
+
+
+ s = 32
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 204.767 seconds.
+Finished Scatter of X and y in 0.606136 seconds.
+Calling CA-BCD with 28-by-11000000 matrix X and s = 32
+Outer loop computation time: 2.21685
+Inner loop computation time: 0.154044
+MPI_Allreduce time: 1.5447
+Outer loop computation time: 2.22618
+Inner loop computation time: 0.0566306
+MPI_Allreduce time: 1.08519
+Outer loop computation time: 2.2243
+Inner loop computation time: 0.0574577
+MPI_Allreduce time: 0.90928
+Outer loop computation time: 2.22539
+Inner loop computation time: 0.0554278
+MPI_Allreduce time: 1.33017
+
+Total CA-BCD time: 3.39213
+
+
+Increasing block size to 3
+
+
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+srun: error: Unable to create job step: Job/step already completing or completed
+
+
+ s = 4
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+srun: error: Unable to create job step: Job/step already completing or completed
+
+
+ s = 8
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+srun: error: Unable to create job step: Job/step already completing or completed
+
+
+ s = 16
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+srun: error: Unable to create job step: Job/step already completing or completed
+
+
+ s = 32
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+srun: error: Unable to create job step: Job/step already completing or completed
+
+

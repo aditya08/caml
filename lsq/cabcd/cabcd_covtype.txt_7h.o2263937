@@ -1,0 +1,637 @@
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Running s choice experiments
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+srun: error: nid01525: task 393: Exited with exit code 2
+srun: Terminating job step 2263937.0
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+srun: error: nid01526: tasks 415,428: Exited with exit code 2
+slurmstepd: error: *** STEP 2263937.0 ON nid00210 CANCELLED AT 2016-10-05T14:15:39 ***
+slurmstepd: error: Failed to attach pid 47214 to job container: No data available
+slurmstepd: error: Failed to attach pid 11686 to job container: No data available
+slurmstepd: error: Failed to attach pid 40644 to job container: No data available
+srun: Job step 2263937.0 aborted before step completely launched.
+srun: error: nid01524: tasks 364,373: Exited with exit code 2
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: nid01525: tasks 384-385,387,391,403-404: Exited with exit code 2
+srun: error: nid01526: tasks 417,422,427: Exited with exit code 2
+srun: error: nid01524: tasks 360-361,363,369,380-381: Exited with exit code 2
+srun: error: nid01526: tasks 409-411,413-414,416,418-419,421,425-426: Exited with exit code 2
+slurmstepd: error: Failed to attach pid 47214 to job container: No data available
+slurmstepd: error: Failed to attach pid 11686 to job container: No data available
+slurmstepd: error: Failed to attach pid 40644 to job container: No data available
+slurmstepd: error: Failed to attach pid 47214 to job container: No data available
+slurmstepd: error: Failed to attach pid 11686 to job container: No data available
+slurmstepd: error: Failed to attach pid 40644 to job container: No data available
+srun: error: nid01526: tasks 408,412,420,423-424,429-431: Exited with exit code 2
+srun: error: nid01525: tasks 386,388-390,392,394-402,405-407: Exited with exit code 2
+srun: error: nid01524: tasks 362,365-368,370-372,374-379,382-383: Exited with exit code 2
+slurmstepd: error: Failed to attach pid 47214 to job container: No data available
+slurmstepd: error: Failed to attach pid 11686 to job container: No data available
+slurmstepd: error: Failed to attach pid 40644 to job container: No data available
+srun: error: nid01959: tasks 504-527: Killed
+srun: error: nid01966: tasks 672-695: Killed
+srun: error: nid01961: tasks 552-575: Killed
+srun: error: nid01956: tasks 432-455: Killed
+srun: error: nid01965: tasks 648-671: Killed
+srun: error: nid01963: tasks 600-623: Killed
+srun: error: nid00214: tasks 96-119: Killed
+srun: error: nid01964: tasks 624-647: Killed
+srun: error: nid01960: tasks 528-551: Killed
+slurmstepd: error: Failed to attach pid 47214 to job container: No data available
+slurmstepd: error: proctrack_g_add: No data available
+slurmstepd: error: Failed to attach pid 11686 to job container: No data available
+slurmstepd: error: proctrack_g_add: No data available
+srun: error: nid01967: tasks 696-719: Killed
+slurmstepd: error: Failed to attach pid 40644 to job container: No data available
+slurmstepd: error: proctrack_g_add: No data available
+srun: error: nid00399: tasks 120-143: Killed
+srun: error: nid01962: tasks 576-599: Killed
+srun: error: nid01969: tasks 744-767: Killed
+srun: error: nid00213: tasks 72-95: Killed
+srun: error: nid01075: tasks 312-335: Killed
+srun: error: nid01074: tasks 288-311: Killed
+srun: error: nid01958: tasks 480-503: Killed
+srun: error: nid01076: tasks 336-359: Killed
+srun: error: nid00400: tasks 144-167: Killed
+srun: error: nid01957: tasks 456-479: Killed
+srun: error: nid00401: tasks 168-191: Killed
+srun: error: nid01968: tasks 720-743: Killed
+srun: error: nid00212: tasks 48-71: Killed
+srun: error: nid00403: tasks 216-239: Killed
+srun: error: nid00404: tasks 240-263: Killed
+srun: error: nid00402: tasks 192-215: Killed
+srun: error: Timed out waiting for job step to complete
+
+
+ s = 4
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+srun: error: nid01525: tasks 390,400: Exited with exit code 2
+srun: Terminating job step 2263937.1
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: *** STEP 2263937.1 ON nid00210 CANCELLED AT 2016-10-05T14:16:49 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: nid01959: tasks 504-527: Killed
+srun: error: nid00210: tasks 0-23: Killed
+srun: error: nid01964: tasks 624-647: Killed
+srun: error: nid01965: tasks 648-671: Killed
+srun: error: nid01525: tasks 384-389,391-399,401-407: Killed
+srun: error: nid00401: tasks 168-191: Killed
+srun: error: nid01075: tasks 312-335: Killed
+srun: error: nid01074: tasks 288-311: Killed
+srun: error: nid00399: tasks 120-143: Killed
+srun: error: nid01526: tasks 408-429,431: Killed
+srun: error: nid01526: task 430: Exited with exit code 2
+srun: error: nid01969: tasks 744-767: Killed
+srun: error: nid00400: tasks 144-167: Killed
+srun: error: nid01968: tasks 720-743: Killed
+srun: error: nid01957: tasks 456-479: Killed
+srun: error: nid01956: tasks 432-455: Killed
+srun: error: nid01524: tasks 360-383: Killed
+srun: error: nid00404: tasks 240-263: Killed
+srun: error: nid00213: tasks 72-95: Killed
+srun: error: nid01961: tasks 552-575: Killed
+srun: error: nid00211: tasks 24-47: Killed
+srun: error: nid00403: tasks 216-239: Killed
+srun: error: nid01958: tasks 480-503: Killed
+srun: error: nid01962: tasks 576-599: Killed
+srun: error: nid01963: tasks 600-623: Killed
+srun: error: nid01960: tasks 528-551: Killed
+srun: error: nid00402: tasks 192-215: Killed
+srun: error: nid01967: tasks 696-719: Killed
+srun: error: nid01073: tasks 264-287: Killed
+srun: error: nid01076: tasks 336-359: Killed
+srun: error: nid00214: tasks 96-119: Killed
+srun: error: nid01966: tasks 672-695: Killed
+srun: error: nid00212: tasks 48-71: Killed
+
+
+ s = 8
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+srun: error: nid01524: task 369: Exited with exit code 2
+srun: Terminating job step 2263937.2
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: *** STEP 2263937.2 ON nid00210 CANCELLED AT 2016-10-05T14:16:59 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: nid01525: tasks 384-407: Killed
+srun: error: nid01524: tasks 360-368,370-380,382-383: Killed
+srun: error: nid01524: task 381: Exited with exit code 2
+srun: error: nid00212: tasks 48-71: Killed
+srun: error: nid01956: tasks 432-455: Killed
+srun: error: nid00400: tasks 144-167: Killed
+srun: error: nid01959: tasks 504-527: Killed
+srun: error: nid01969: tasks 744-767: Killed
+srun: error: nid01074: tasks 288-311: Killed
+srun: error: nid01963: tasks 600-623: Killed
+srun: error: nid01962: tasks 576-599: Killed
+srun: error: nid00402: tasks 192-215: Killed
+srun: error: nid01960: tasks 528-551: Killed
+srun: error: nid01964: tasks 624-647: Killed
+srun: error: nid00404: tasks 240-263: Killed
+srun: error: nid00214: tasks 96-119: Killed
+srun: error: nid01957: tasks 456-479: Killed
+srun: error: nid00399: tasks 120-143: Killed
+srun: error: nid01965: tasks 648-671: Killed
+srun: error: nid01968: tasks 720-743: Killed
+srun: error: nid01076: tasks 336-359: Killed
+srun: error: nid01967: tasks 696-719: Killed
+srun: error: nid01526: tasks 408-427,429-431: Killed
+srun: error: nid01526: task 428: Exited with exit code 2
+srun: error: nid01966: tasks 672-695: Killed
+srun: error: nid01073: tasks 264-287: Killed
+srun: error: nid00211: tasks 24-47: Killed
+srun: error: nid00401: tasks 168-191: Killed
+srun: error: nid01075: tasks 312-335: Killed
+srun: error: nid00403: tasks 216-239: Killed
+srun: error: nid00210: tasks 0-23: Killed
+srun: error: nid01958: tasks 480-503: Killed
+srun: error: nid01961: tasks 552-575: Killed
+srun: error: nid00213: tasks 72-95: Killed
+
+
+ s = 16
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+srun: error: nid01524: tasks 367,369-370: Exited with exit code 2
+srun: Terminating job step 2263937.3
+slurmstepd: error: *** STEP 2263937.3 ON nid00210 CANCELLED AT 2016-10-05T14:17:09 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: nid00211: tasks 24-47: Killed
+srun: error: nid00213: tasks 72-95: Killed
+srun: error: nid01968: tasks 720-743: Killed
+srun: error: nid01957: tasks 456-479: Killed
+srun: error: nid01966: tasks 672-695: Killed
+srun: error: nid01074: tasks 288-311: Killed
+srun: error: nid00212: tasks 48-71: Killed
+srun: error: nid01962: tasks 576-599: Killed
+srun: error: nid00399: tasks 120-143: Killed
+srun: error: nid00210: tasks 0-23: Killed
+srun: error: nid01525: tasks 384-397,399-407: Killed
+srun: error: nid01525: task 398: Exited with exit code 2
+srun: error: nid00400: tasks 144-167: Killed
+srun: error: nid01959: tasks 504-527: Killed
+srun: error: nid01964: tasks 624-647: Killed
+srun: error: nid00404: tasks 240-263: Killed
+srun: error: nid00401: tasks 168-191: Killed
+srun: error: nid01963: tasks 600-623: Killed
+srun: error: nid01075: tasks 312-335: Killed
+srun: error: nid01958: tasks 480-503: Killed
+srun: error: nid01960: tasks 528-551: Killed
+srun: error: nid01076: tasks 336-359: Killed
+srun: error: nid00403: tasks 216-239: Killed
+srun: error: nid01961: tasks 552-575: Killed
+srun: error: nid01073: tasks 264-287: Killed
+srun: error: nid01969: tasks 744-767: Killed
+srun: error: nid01526: tasks 408-419,421-429,431: Killed
+srun: error: nid01526: tasks 420,430: Exited with exit code 2
+srun: error: nid00214: tasks 96-119: Killed
+srun: error: nid01956: tasks 432-455: Killed
+srun: error: nid01524: tasks 360-366,368,371-383: Killed
+srun: error: nid00402: tasks 192-215: Killed
+srun: error: nid01965: tasks 648-671: Killed
+srun: error: nid01967: tasks 696-719: Killed
+
+
+ s = 32
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+srun: error: nid01525: tasks 387,404: Exited with exit code 2
+srun: Terminating job step 2263937.4
+slurmstepd: error: *** STEP 2263937.4 ON nid00210 CANCELLED AT 2016-10-05T14:17:18 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: nid00210: tasks 0-23: Killed
+srun: error: nid00399: tasks 120-143: Killed
+srun: error: nid01968: tasks 720-743: Killed
+srun: error: nid01526: tasks 408,410-431: Killed
+srun: error: nid01526: task 409: Exited with exit code 2
+srun: error: nid01960: tasks 528-551: Killed
+srun: error: nid01961: tasks 552-575: Killed
+srun: error: nid01958: tasks 480-503: Killed
+srun: error: nid01076: tasks 336-359: Killed
+srun: error: nid01959: tasks 504-527: Killed
+srun: error: nid01964: tasks 624-647: Killed
+srun: error: nid00213: tasks 72-95: Killed
+srun: error: nid01075: tasks 312-335: Killed
+srun: error: nid01525: tasks 384-386,388-403,405-407: Killed
+srun: error: nid01956: tasks 432-455: Killed
+srun: error: nid01966: tasks 672-695: Killed
+srun: error: nid01074: tasks 288-311: Killed
+srun: error: nid01524: tasks 360-383: Killed
+srun: error: nid00402: tasks 192-215: Killed
+srun: error: nid00404: tasks 240-263: Killed
+srun: error: nid01957: tasks 456-479: Killed
+srun: error: nid01073: tasks 264-287: Killed
+srun: error: nid00211: tasks 24-47: Killed
+srun: error: nid00212: tasks 48-71: Killed
+srun: error: nid01963: tasks 600-623: Killed
+srun: error: nid01962: tasks 576-599: Killed
+srun: error: nid00214: tasks 96-119: Killed
+srun: error: nid00401: tasks 168-191: Killed
+srun: error: nid01969: tasks 744-767: Killed
+srun: error: nid00400: tasks 144-167: Killed
+srun: error: nid01965: tasks 648-671: Killed
+srun: error: nid01967: tasks 696-719: Killed
+srun: error: nid00403: tasks 216-239: Killed
+
+
+Increasing block size to 3
+
+
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+srun: error: nid01526: tasks 408,411,413-414,426: Exited with exit code 2
+srun: Terminating job step 2263937.5
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+srun: error: nid01525: tasks 384,389,404,406: Exited with exit code 2
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: *** STEP 2263937.5 ON nid00210 CANCELLED AT 2016-10-05T14:17:28 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: nid00401: tasks 168-191: Killed
+srun: error: nid00210: tasks 0-23: Killed
+srun: error: nid00212: tasks 48-71: Killed
+srun: error: nid00214: tasks 96-119: Killed
+srun: error: nid01957: tasks 456-479: Killed
+srun: error: nid01075: tasks 312-335: Killed
+srun: error: nid01959: tasks 504-527: Killed
+srun: error: nid01963: tasks 600-623: Killed
+srun: error: nid01962: tasks 576-599: Killed
+srun: error: nid00402: tasks 192-215: Killed
+srun: error: nid01967: tasks 696-719: Killed
+srun: error: nid00404: tasks 240-263: Killed
+srun: error: nid00211: tasks 24-47: Killed
+srun: error: nid00213: tasks 72-95: Killed
+srun: error: nid01525: tasks 385,387-388,390-391,393-400,402-403,405,407: Killed
+srun: error: nid01525: tasks 386,392,401: Exited with exit code 2
+srun: error: nid01965: tasks 648-671: Killed
+srun: error: nid01076: tasks 336-359: Killed
+srun: error: nid01526: tasks 409-410,412,415-417,419-425,427-431: Killed
+srun: error: nid01526: task 418: Exited with exit code 2
+srun: error: nid00403: tasks 216-239: Killed
+srun: error: nid01524: tasks 360-361,363-374,376-378,380-383: Killed
+srun: error: nid01956: tasks 432-455: Killed
+srun: error: nid01524: tasks 362,375,379: Exited with exit code 2
+srun: error: nid01966: tasks 672-695: Killed
+srun: error: nid01073: tasks 264-287: Killed
+srun: error: nid01964: tasks 624-647: Killed
+srun: error: nid00400: tasks 144-167: Killed
+srun: error: nid01074: tasks 288-311: Killed
+srun: error: nid01969: tasks 744-767: Killed
+srun: error: nid01961: tasks 552-575: Killed
+srun: error: nid01968: tasks 720-743: Killed
+srun: error: nid00399: tasks 120-143: Killed
+srun: error: nid01960: tasks 528-551: Killed
+srun: error: nid01958: tasks 480-503: Killed
+
+
+ s = 4
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+srun: error: nid01525: task 387: Exited with exit code 2
+srun: Terminating job step 2263937.6
+slurmstepd: error: *** STEP 2263937.6 ON nid00210 CANCELLED AT 2016-10-05T14:17:38 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: nid01524: tasks 360-383: Killed
+srun: error: nid00214: tasks 96-119: Killed
+srun: error: nid00402: tasks 192-215: Killed
+srun: error: nid01966: tasks 672-695: Killed
+srun: error: nid01957: tasks 456-479: Killed
+srun: error: nid01967: tasks 696-719: Killed
+srun: error: nid01526: tasks 408-431: Killed
+srun: error: nid00211: tasks 24-47: Killed
+srun: error: nid01073: tasks 264-287: Killed
+srun: error: nid01958: tasks 480-503: Killed
+srun: error: nid00213: tasks 72-95: Killed
+srun: error: nid01960: tasks 528-551: Killed
+srun: error: nid01962: tasks 576-599: Killed
+srun: error: nid00404: tasks 240-263: Killed
+srun: error: nid01961: tasks 552-575: Killed
+srun: error: nid00401: tasks 168-191: Killed
+srun: error: nid01959: tasks 504-527: Killed
+srun: error: nid01963: tasks 600-623: Killed
+srun: error: nid01969: tasks 744-767: Killed
+srun: error: nid01076: tasks 336-359: Killed
+srun: error: nid00400: tasks 144-167: Killed
+srun: error: nid01968: tasks 720-743: Killed
+srun: error: nid01956: tasks 432-455: Killed
+srun: error: nid01964: tasks 624-647: Killed
+srun: error: nid01525: tasks 384-386,388-407: Killed
+srun: error: nid01075: tasks 312-335: Killed
+srun: error: nid01965: tasks 648-671: Killed
+srun: error: nid00403: tasks 216-239: Killed
+srun: error: nid00399: tasks 120-143: Killed
+srun: error: nid00210: tasks 0-23: Killed
+srun: error: nid01074: tasks 288-311: Killed
+srun: error: nid00212: tasks 48-71: Killed
+
+
+ s = 16
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+srun: error: nid01526: task 412: Exited with exit code 2
+srun: Terminating job step 2263937.7
+slurmstepd: error: *** STEP 2263937.7 ON nid00210 CANCELLED AT 2016-10-05T14:17:48 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: nid01076: tasks 336-359: Killed
+srun: error: nid01074: tasks 288-311: Killed
+srun: error: nid00401: tasks 168-191: Killed
+srun: error: nid01967: tasks 696-719: Killed
+srun: error: nid01963: tasks 600-623: Killed
+srun: error: nid01961: tasks 552-575: Killed
+srun: error: nid01960: tasks 528-551: Killed
+srun: error: nid00212: tasks 48-71: Killed
+srun: error: nid00211: tasks 24-47: Killed
+srun: error: nid01962: tasks 576-599: Killed
+srun: error: nid00214: tasks 96-119: Killed
+srun: error: nid01956: tasks 432-455: Killed
+srun: error: nid01073: tasks 264-287: Killed
+srun: error: nid01524: tasks 360-363,365,367-383: Killed
+srun: error: nid01524: tasks 364,366: Exited with exit code 2
+srun: error: nid01965: tasks 648-671: Killed
+srun: error: nid01964: tasks 624-647: Killed
+srun: error: nid01525: tasks 384-407: Killed
+srun: error: nid00213: tasks 72-95: Killed
+srun: error: nid01075: tasks 312-335: Killed
+srun: error: nid00403: tasks 216-239: Killed
+srun: error: nid00210: tasks 0-23: Killed
+srun: error: nid00402: tasks 192-215: Killed
+srun: error: nid01968: tasks 720-743: Killed
+srun: error: nid00399: tasks 120-143: Killed
+srun: error: nid01957: tasks 456-479: Killed
+srun: error: nid01958: tasks 480-503: Killed
+srun: error: nid00400: tasks 144-167: Killed
+srun: error: nid01959: tasks 504-527: Killed
+srun: error: nid01969: tasks 744-767: Killed
+srun: error: nid01966: tasks 672-695: Killed
+srun: error: nid00404: tasks 240-263: Killed
+srun: error: nid01526: tasks 408-411,413-431: Killed
+
+
+ s = 16
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+srun: error: nid01525: tasks 384,388: Exited with exit code 2
+srun: Terminating job step 2263937.8
+slurmstepd: error: *** STEP 2263937.8 ON nid00210 CANCELLED AT 2016-10-05T14:17:58 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: nid01964: tasks 624-647: Killed
+srun: error: nid01965: tasks 648-671: Killed
+srun: error: nid01526: tasks 408-431: Killed
+srun: error: nid00212: tasks 48-71: Killed
+srun: error: nid01076: tasks 336-359: Killed
+srun: error: nid00403: tasks 216-239: Killed
+srun: error: nid01524: tasks 360-383: Killed
+srun: error: nid00401: tasks 168-191: Killed
+srun: error: nid01962: tasks 576-599: Killed
+srun: error: nid01074: tasks 288-311: Killed
+srun: error: nid01075: tasks 312-335: Killed
+srun: error: nid01968: tasks 720-743: Killed
+srun: error: nid01969: tasks 744-767: Killed
+srun: error: nid00210: tasks 0-23: Killed
+srun: error: nid01958: tasks 480-503: Killed
+srun: error: nid01966: tasks 672-695: Killed
+srun: error: nid01960: tasks 528-551: Killed
+srun: error: nid00399: tasks 120-143: Killed
+srun: error: nid01957: tasks 456-479: Killed
+srun: error: nid01959: tasks 504-527: Killed
+srun: error: nid00400: tasks 144-167: Killed
+srun: error: nid01967: tasks 696-719: Killed
+srun: error: nid01956: tasks 432-455: Killed
+srun: error: nid01073: tasks 264-287: Killed
+srun: error: nid00404: tasks 240-263: Killed
+srun: error: nid01963: tasks 600-623: Killed
+srun: error: nid00211: tasks 24-47: Killed
+srun: error: nid00214: tasks 96-119: Killed
+srun: error: nid00402: tasks 192-215: Killed
+srun: error: nid01961: tasks 552-575: Killed
+srun: error: nid00213: tasks 72-95: Killed
+srun: error: nid01525: tasks 385-387,389-407: Killed
+
+
+ s = 32
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: couldn't chdir to `/scratch2/scratchdirs/aditya08/caml/lsq/cabcd': No such file or directory: going to /tmp instead
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: Unable to create TMPDIR [/scratch2/scratchdirs/aditya08]: No such file or directory
+slurmstepd: error: Setting TMPDIR to /tmp
+slurmstepd: error: execve(): /scratch2/scratchdirs/aditya08/caml/lsq/cabcd/./cabcd: No such file or directory
+srun: error: nid01526: task 408: Exited with exit code 2
+srun: Terminating job step 2263937.9
+slurmstepd: error: *** STEP 2263937.9 ON nid00210 CANCELLED AT 2016-10-05T14:18:07 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: error: nid01966: tasks 672-695: Killed
+srun: error: nid01965: tasks 648-671: Killed
+srun: error: nid00212: tasks 48-71: Killed
+srun: error: nid01961: tasks 552-575: Killed
+srun: error: nid01526: tasks 409-431: Killed
+srun: error: nid01967: tasks 696-719: Killed
+srun: error: nid01962: tasks 576-599: Killed
+srun: error: nid01958: tasks 480-503: Killed
+srun: error: nid00404: tasks 240-263: Killed
+srun: error: nid01524: tasks 360-383: Killed
+srun: error: nid01076: tasks 336-359: Killed
+srun: error: nid00211: tasks 24-47: Killed
+srun: error: nid01964: tasks 624-647: Killed
+srun: error: nid01956: tasks 432-455: Killed
+srun: error: nid00402: tasks 192-215: Killed
+srun: error: nid01959: tasks 504-527: Killed
+srun: error: nid01969: tasks 744-767: Killed
+srun: error: nid01075: tasks 312-335: Killed
+srun: error: nid00400: tasks 144-167: Killed
+srun: error: nid00401: tasks 168-191: Killed
+srun: error: nid00399: tasks 120-143: Killed
+srun: error: nid01525: tasks 384-407: Killed
+srun: error: nid01960: tasks 528-551: Killed
+srun: error: nid00214: tasks 96-119: Killed
+srun: error: nid01073: tasks 264-287: Killed
+srun: error: nid01963: tasks 600-623: Killed
+srun: error: nid01957: tasks 456-479: Killed
+srun: error: nid01968: tasks 720-743: Killed
+srun: error: nid00210: tasks 0-23: Killed
+srun: error: nid00403: tasks 216-239: Killed
+srun: error: nid00213: tasks 72-95: Killed
+srun: error: nid01074: tasks 288-311: Killed
+
+

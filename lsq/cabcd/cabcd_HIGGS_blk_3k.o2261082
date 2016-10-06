@@ -1,0 +1,153 @@
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Running s choice experiments
+
+
+ s = 4
+
+
+ s = 8
+
+
+ s = 16
+
+
+ s = 32
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 205 seconds.
+Finished Scatter of X and y in 0.743671 seconds.
+Calling CA-BCD with 28-by-11000000 matrix X and s = 32
+Outer loop computation time: 2.44626
+Inner loop computation time: 0.126481
+MPI_Allreduce time: 0.583861
+Outer loop computation time: 2.43684
+Inner loop computation time: 0.052413
+MPI_Allreduce time: 0.348754
+Outer loop computation time: 2.4365
+Inner loop computation time: 0.0523772
+MPI_Allreduce time: 0.323967
+Outer loop computation time: 2.43656
+Inner loop computation time: 0.0524216
+MPI_Allreduce time: 0.361242
+
+Total CA-BCD time: 2.83577
+w = -0.0705512 1.7805e-05 0.000386599 -0.0895191 -0.000230318 0.172099 -1.13816e-05 0.000178791 0.0471734 0.0548868 -3.99755e-05 -0.000242745 0.0192159 0.0487594 -2.25256e-05 -3.7735e-05 0.0105982 0.0661183 -0.000154497 0.000219654 0.0085153 -0.0457307 0.191182 0.419954 0.110712 -0.229716 0.166816 -0.410702 
+
+
+Increasing block size to 3
+
+
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 204.291 seconds.
+Finished Scatter of X and y in 0.513635 seconds.
+Calling CA-BCD with 28-by-11000000 matrix X and s = 1
+Outer loop computation time: 4.71455
+Inner loop computation time: 0.245528
+MPI_Allreduce time: 2.58413
+Outer loop computation time: 4.62672
+Inner loop computation time: 0.159574
+MPI_Allreduce time: 2.71576
+Outer loop computation time: 4.72773
+Inner loop computation time: 0.159056
+MPI_Allreduce time: 2.47673
+Outer loop computation time: 4.71642
+Inner loop computation time: 0.159328
+MPI_Allreduce time: 2.42755
+
+Total CA-BCD time: 7.39944
+w = -0.0705512 1.7805e-05 0.000386599 -0.0895191 -0.000230318 0.172099 -1.13816e-05 0.000178791 0.0471734 0.0548868 -3.99755e-05 -0.000242745 0.0192159 0.0487594 -2.25256e-05 -3.7735e-05 0.0105982 0.0661183 -0.000154497 0.000219654 0.0085153 -0.0457307 0.191182 0.419954 0.110712 -0.229716 0.166816 -0.410702 
+
+
+ s = 4
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 205.341 seconds.
+Finished Scatter of X and y in 0.63251 seconds.
+Calling CA-BCD with 28-by-11000000 matrix X and s = 4
+Outer loop computation time: 5.9064
+Inner loop computation time: 0.179905
+MPI_Allreduce time: 1.38736
+Outer loop computation time: 5.79238
+Inner loop computation time: 0.0936625
+MPI_Allreduce time: 1.22361
+Outer loop computation time: 5.81356
+Inner loop computation time: 0.0930238
+MPI_Allreduce time: 1.09029
+Outer loop computation time: 5.81391
+Inner loop computation time: 0.0934353
+MPI_Allreduce time: 1.14593
+
+Total CA-BCD time: 7.05727
+w = -0.0705512 1.7805e-05 0.000386599 -0.0895191 -0.000230318 0.172099 -1.13816e-05 0.000178791 0.0471734 0.0548868 -3.99755e-05 -0.000242745 0.0192159 0.0487594 -2.25256e-05 -3.7735e-05 0.0105982 0.0661183 -0.000154497 0.000219654 0.0085153 -0.0457307 0.191182 0.419954 0.110712 -0.229716 0.166816 -0.410702 
+
+
+ s = 8
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 206.949 seconds.
+Finished Scatter of X and y in 0.561683 seconds.
+Calling CA-BCD with 28-by-11000000 matrix X and s = 8
+Outer loop computation time: 6.44515
+Inner loop computation time: 0.150442
+MPI_Allreduce time: 1.54241
+Outer loop computation time: 6.45354
+Inner loop computation time: 0.0838816
+MPI_Allreduce time: 0.956928
+Outer loop computation time: 6.45092
+Inner loop computation time: 0.083111
+MPI_Allreduce time: 1.10205
+Outer loop computation time: 6.45274
+Inner loop computation time: 0.0830905
+MPI_Allreduce time: 1.08822
+
+Total CA-BCD time: 7.58795
+w = -0.0705512 1.7805e-05 0.000386599 -0.0895191 -0.000230318 0.172099 -1.13816e-05 0.000178791 0.0471734 0.0548868 -3.99755e-05 -0.000242745 0.0192159 0.0487594 -2.25256e-05 -3.7735e-05 0.0105982 0.0661183 -0.000154497 0.000219654 0.0085153 -0.0457307 0.191182 0.419954 0.110712 -0.229716 0.166816 -0.410702 
+
+
+ s = 16
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 206.23 seconds.
+Finished Scatter of X and y in 0.549935 seconds.
+Calling CA-BCD with 28-by-11000000 matrix X and s = 16
+Outer loop computation time: 8.08378
+Inner loop computation time: 0.142435
+MPI_Allreduce time: 1.15245
+Outer loop computation time: 8.03342
+Inner loop computation time: 0.0736737
+MPI_Allreduce time: 1.04658
+Outer loop computation time: 8.07995
+Inner loop computation time: 0.0737128
+MPI_Allreduce time: 0.971565
+Outer loop computation time: 8.07739
+Inner loop computation time: 0.0735908
+MPI_Allreduce time: 0.982219
+
+Total CA-BCD time: 9.13992
+w = -0.0705512 1.7805e-05 0.000386599 -0.0895191 -0.000230318 0.172099 -1.13816e-05 0.000178791 0.0471734 0.0548868 -3.99755e-05 -0.000242745 0.0192159 0.0487594 -2.25256e-05 -3.7735e-05 0.0105982 0.0661183 -0.000154497 0.000219654 0.0085153 -0.0457307 0.191182 0.419954 0.110712 -0.229716 0.166816 -0.410702 
+
+
+ s = 32
+ModuleCmd_Load.c(226):ERROR:105: Unable to locate a modulefile for 'null'
+Reading file on rank 0
+Finished reading file in 205.313 seconds.
+Finished Scatter of X and y in 0.588491 seconds.
+Calling CA-BCD with 28-by-11000000 matrix X and s = 32
+Outer loop computation time: 11.9468
+Inner loop computation time: 0.178363
+MPI_Allreduce time: 1.43756
+Outer loop computation time: 11.9138
+Inner loop computation time: 0.10006
+MPI_Allreduce time: 1.15233
+Outer loop computation time: 11.8966
+Inner loop computation time: 0.0999224
+MPI_Allreduce time: 1.34422
+Outer loop computation time: 11.8945
+Inner loop computation time: 0.099966
+MPI_Allreduce time: 1.16224
+
+Total CA-BCD time: 13.2237
+w = -0.0705512 1.7805e-05 0.000386599 -0.0895191 -0.000230318 0.172099 -1.13816e-05 0.000178791 0.0471734 0.0548868 -3.99755e-05 -0.000242745 0.0192159 0.0487594 -2.25256e-05 -3.7735e-05 0.0105982 0.0661183 -0.000154497 0.000219654 0.0085153 -0.0457307 0.191182 0.419954 0.110712 -0.229716 0.166816 -0.410702 
+
+
