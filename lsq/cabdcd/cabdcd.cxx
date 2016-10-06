@@ -196,13 +196,15 @@ void cabdcd(	double *X,	//input args
 		for(int i = 0; i < b; ++i)
 			alpha[index[i]] = alpha[index[i]] - del_a[i];
 		iter++;
-		
+	
+		/*
 		if(rank == 0){
 			std::cout << "del_a = ";
 			for(int i = 0; i < b; ++i)
 				std::cout << del_a[i] << " ";
 			std::cout << std::endl;
 		}
+		*/
 		//std::cout << "del_a = " << del_a[0] << std::endl; 
 		innerstp = MPI_Wtime();
 		inneragg += innerstp - innerst;
@@ -227,12 +229,14 @@ void cabdcd(	double *X,	//input args
 		}
 		//std::cout << "Iter count: " << iter << std::endl;
 		//std::cout << "del_a before = " << del_a[iter] << std::endl; 
+		/*
 		if(rank == 0){
 			std::cout << "del_a before = ";
 			for(int i = b; i < s*b; ++i)
 				std::cout << del_a[i] << " ";
 			std::cout << std::endl;
 		}
+		*/
 
 		for(int i = 1; i < s; ++i){
 			
@@ -245,7 +249,7 @@ void cabdcd(	double *X,	//input args
 			for(int j = 0; j < i*b; ++j){
 				for(int k = 0; k < b; ++k){
 					if(index[j] == index[i*b + k])
-						del_a[i*b + k] += (1./n)*del_a[j];
+						del_a[i*b + k] -= (1./n)*del_a[j];
 				}
 			}
 
@@ -259,12 +263,14 @@ void cabdcd(	double *X,	//input args
 			
 			for(int j = 0; j < b; ++j)
 				alpha[index[i*b + j]] = alpha[index[i*b + j]] - del_a[i*b + j];
+			/*
 			if(rank == 0){
 				std::cout << "del_a = ";
 				for(int k = 0; k < b; ++k)
 					std::cout << del_a[i*b + k] << " ";
 				std::cout << std::endl;
 			}
+			*/
 			//std::cout << "del_a = " << del_a[i] << std::endl; 
 			iter++;
 			inneragg += MPI_Wtime() - innerst;
@@ -391,16 +397,17 @@ int main (int argc, char* argv[])
 		//	std::cout << X[i] << " ";
 		//std::cout << std::endl;
 		double scatterst = MPI_Wtime();
-		
+		/*
 		for(int i = 0; i < npes; ++i){
 			std::cout << cnts[i] << " ";
 		}
 		std::cout << std::endl;
-		
+		*/
+
 		MPI_Scatterv(X, cnts, displs, MPI_DOUBLE, localX, cnts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
 		MPI_Bcast(y, m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-		std::cout << "cnts2[" << rank << "] = " << cnts2[rank] << std::endl;
-		std::cout << y[0] << std::endl;
+		//std::cout << "cnts2[" << rank << "] = " << cnts2[rank] << std::endl;
+		//std::cout << y[0] << std::endl;
 		double scatterstp = MPI_Wtime();
 		if(rank == 0){
 			std::cout << "Finished Scatter of X and y in " << scatterstp - scatterst << " seconds." << std::endl;
@@ -459,7 +466,7 @@ int main (int argc, char* argv[])
 	MPI_Barrier(comm);
 	MPI_Barrier(comm);
 	MPI_Barrier(comm);
-	std::cout << "w = ";
+	std::cout << " rank " << rank << " w = ";
 	for(int i = 0; i < cnts2[rank]; ++i)
 		std::cout << w[i] << " ";
 	std::cout << std::endl;
