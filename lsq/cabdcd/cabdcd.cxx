@@ -33,7 +33,7 @@ void cabdcd(	double *X,	//input args
 	double *alpha, *res,  *obj_err, *sol_err;
 	double *del_a;
 
-	double *G, *recvG, *Xsamp, *wsamp;
+	double *G, *recvG, *Xsamp, *asamp, *ysamp;
 	int incx = 1;
 	int *index;
 	int gram_size = s*b;
@@ -46,7 +46,8 @@ void cabdcd(	double *X,	//input args
 	assert(0==Malloc_aligned(double, G, gram_size*(gram_size + 2), ALIGN));
 	assert(0==Malloc_aligned(double, recvG, s*b*(s*b + 2), ALIGN));
 	assert(0==Malloc_aligned(double, del_a, s*b, ALIGN));
-	assert(0==Malloc_aligned(double, wsamp, s*b, ALIGN));
+	assert(0==Malloc_aligned(double, asamp, s*b, ALIGN));
+	assert(0==Malloc_aligned(double, ysamp, s*b, ALIGN));
 	assert(0==Malloc_aligned(int, index, s*b, ALIGN));
 
 	
@@ -56,6 +57,8 @@ void cabdcd(	double *X,	//input args
 
 	char transa = 'N', transb = 'T', uplo = 'U';
 	double alp = 1./(lambda*n*n);
+	double bet = -1./n, gam = 1./n;
+	double rho = 1./(lambda*n);
 	double one = 1., zero = 0., neg = -1.;
 	int info, nrhs = 1;
 	int lGcols = b;
@@ -91,8 +94,9 @@ void cabdcd(	double *X,	//input args
 			//TODO: need to sample without replacement
 			//if(rank ==0)
 			//	std::cout << "index = " << index[i] << std::endl;
-			dcopy(&len, X + index[i], &m, Xsamp + i, &gram_size);
-			wsamp[i] = w[index[i]];
+			dcopy(&len, X + index[i], &n, Xsamp + i, &gram_size);
+			ysamp[i] = y[index[i]];
+			asamp[i] = alpha[index[i]];
 		}
 
 		//std::cout << "Xsamp[0] = " << Xsamp[0] << " Xsamp[1] = " << Xsamp[1] << std::endl;  
@@ -107,8 +111,8 @@ void cabdcd(	double *X,	//input args
 
 		// Compute y and alpha components of residual based on sampled rows.
 		//std::cout << "Calling DGEMV" << std::endl;
-		dgemv(&transa, &gram_size, &len, &alp, Xsamp, &gram_size, alpha, &incx, &zero, G + (s*b*s*b), &incx);
-		dgemv(&transa, &gram_size, &len, &alp, Xsamp, &gram_size, y, &incx, &zero, G + (s*b*(s*b+1)), &incx);
+		dgemv(&transa, &gram_size, &len, &bet, Xsamp, &gram_size, w, &incx, &zero, G + (s*b*s*b), &incx);
+		//dgemv(&transa, &gram_size, &n, &alp, Xsamp, &gram_size, y, &incx, &zero, G + (s*b*(s*b+1)), &incx);
 		gramstp = MPI_Wtime();
 		gramagg += gramstp - gramst;
 
@@ -123,7 +127,6 @@ void cabdcd(	double *X,	//input args
 		for(int i =0; i < s*b; ++i)
 				recvG[i + i*s*b] += 1./n;
 		
-		/*
 		if(rank == 0){
 			for(int i = 0; i < s*b; ++i){
 					for(int j = 0; j < s*b; ++j)
@@ -133,7 +136,6 @@ void cabdcd(	double *X,	//input args
 				std::cout << std::endl;
 		}
 		MPI_Barrier(comm);
-		*/
 
 		/*
 		if(rank == 0){
@@ -154,18 +156,16 @@ void cabdcd(	double *X,	//input args
 		
 		//combine residual updates into one vector
 
-		daxpy(&gram_size, &lambda, wsamp, &incx, recvG + s*b*s*b, &incx);
-		daxpy(&gram_size, &neg, recvG + s*b*s*b, &incx, recvG + s*b*(s*b+1), &incx);
+		daxpy(&gram_size, &gam, asamp, &incx, recvG + s*b*s*b, &incx);
+		daxpy(&gram_size, &gam, ysamp, &incx, recvG + s*b*(s*b), &incx);
 		
-		dcopy(&gram_size, recvG + s*b*(s*b+1), &incx, del_a, &incx);
-		/*
+		dcopy(&gram_size, recvG + s*b*(s*b), &incx, del_a, &incx);
 		std::cout << "residual on rank " << rank << " iter " << iter << std::endl;
 		for(int i = 0; i < s*b; ++i){
 				std::cout << del_a[i] << " ";
 			std::cout << std::endl;
 		}
 		std::cout << std::endl;
-		*/
 
 
 		//compute solution to first (b) x (b) subproblem
@@ -185,7 +185,7 @@ void cabdcd(	double *X,	//input args
 		dpotrs(&uplo, &b, &nrhs, recvG, &gram_size, del_a, &b, &info);
 		assert(0==info);
 		for(int i = 0; i < b; ++i)
-			w[index[i]] = w[index[i]] + del_a[i];
+			alpha[index[i]] = alpha[index[i]] - del_a[i];
 		iter++;
 		innerstp = MPI_Wtime();
 		inneragg += innerstp - innerst;
@@ -193,8 +193,9 @@ void cabdcd(	double *X,	//input args
 		if(iter == maxit){
 			//gram_size = i*b;
 			//dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_a, &incx, &one, alpha, &incx);
+			dgemv(&transb, &gram_size, &len, &rho, Xsamp, &gram_size, del_a, &incx, &one, w, &incx);
 			free(alpha); free(Xsamp); free(G); free(recvG);
-			free(index); free(del_a); free(wsamp);
+			free(index); free(del_a); free(ysamp); free(asamp);
 			if(rank == 0){
 				std::cout << "Outer loop computation time: " << gramagg << std::endl;
 				std::cout << "Inner loop computation time: " << inneragg << std::endl;
@@ -214,13 +215,13 @@ void cabdcd(	double *X,	//input args
 			// Compute residual based on previous subproblem solution
 			innerst = MPI_Wtime();
 			lGcols = i*b;
-			dgemv(&transa, &b, &lGcols, &neg, recvG + i*b, &gram_size, del_a, &incx, &one, del_a + i*b, &incx);
+			dgemv(&transa, &b, &lGcols, &one, recvG + i*b, &gram_size, del_a, &incx, &one, del_a + i*b, &incx);
 			
 			// Correct residual if any sampled row in current block appeared in any previous blocks
 			for(int j = 0; j < i*b; ++j){
 				for(int k = 0; k < b; ++k){
 					if(index[j] == index[i*b + k])
-						del_a[i*b + k] -= lambda*del_a[j];
+						del_a[i*b + k] += (1./n)*del_a[j];
 				}
 			}
 
@@ -233,14 +234,14 @@ void cabdcd(	double *X,	//input args
 			assert(0==info);
 			
 			for(int j = 0; j < b; ++j)
-				w[index[i*b + j]] = w[index[i*b + j]] + del_a[i*b + j];
+				alpha[index[i*b + j]] = alpha[index[i*b + j]] - del_a[i*b + j];
 			iter++;
 			inneragg += MPI_Wtime() - innerst;
 			if(iter == maxit){
 				//gram_size = i*b;
 				//dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_a, &incx, &one, alpha, &incx);
 				free(alpha); free(Xsamp); free(G); free(recvG);
-				free(index); free(del_a); free(wsamp);
+				free(index); free(del_a); free(asamp); free(ysamp);
 				if(rank == 0){
 					std::cout << "Outer loop computation time: " << gramagg << std::endl;
 					std::cout << "Inner loop computation time: " << inneragg << std::endl;
@@ -271,7 +272,7 @@ void cabdcd(	double *X,	//input args
 
 		// Update local alpha
 		gramst = MPI_Wtime();
-		dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_a, &incx, &one, alpha, &incx);
+		dgemv(&transb, &gram_size, &len, &rho, Xsamp, &gram_size, del_a, &incx, &one, w, &incx);
 		
 		memset(G, 0, sizeof(double)*gram_size*(gram_size+2));
 		memset(recvG, 0, sizeof(double)*gram_size*(gram_size+2));
@@ -339,10 +340,8 @@ int main (int argc, char* argv[])
 	staticLB_1d(m, n, npes, flag, cnts, displs, cnts2, displs2);
 
 	assert(0==Malloc_aligned(double, localX, cnts[rank], ALIGN));
-	assert(0==Malloc_aligned(double, localy, cnts2[rank], ALIGN));
-	
+	assert(0==Malloc_aligned(double, y, m, ALIGN));
 	if(rank == 0 && strcmp(fname, "none") != 0){
-		assert(0==Malloc_aligned(double, y, m, ALIGN));
 		assert(0==Malloc_aligned(double, X, m*n, ALIGN));
 		std::cout << "Reading file on rank 0" << std::endl;
 		double iost = MPI_Wtime();
@@ -357,7 +356,8 @@ int main (int argc, char* argv[])
 		mkl_dimatcopy('c', 't', m, n, 1.0, X, m, n); 
 		double scatterst = MPI_Wtime();
 		MPI_Scatterv(X, cnts, displs, MPI_DOUBLE, localX, cnts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
-		MPI_Scatterv(y, cnts2, displs2, MPI_DOUBLE, localy, cnts2[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
+		MPI_Bcast(y, m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+		std::cout << "cnts2[" << rank << "] = " << cnts2[rank] << std::endl;
 		double scatterstp = MPI_Wtime();
 		if(rank == 0){
 			std::cout << "Finished Scatter of X and y in " << scatterstp - scatterst << " seconds." << std::endl;
@@ -369,7 +369,7 @@ int main (int argc, char* argv[])
 		for(int i = 0; i < cnts[rank]; ++i)
 			localX[i] = drand48();
 		for(int i = 0; i < m; ++i)
-			localy[i] = drand48();
+			y[i] = drand48();
 	}
 	double algst, algstp;
 	double *w;
@@ -391,10 +391,10 @@ int main (int argc, char* argv[])
 
 	if(rank == 0)
 		std::cout << "Calling CA-BDCD with " << n <<  "-by-" << m << " matrix X and s = " << s << std::endl;
-	cabdcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
+	cabdcd(localX, n, m, y, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
 	algst = MPI_Wtime();
 	for(int i = 0; i < niter; ++i){
-		cabdcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
+		cabdcd(localX, n, m, y, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
 		
 		/*
 		if(rank == 0){
@@ -416,7 +416,7 @@ int main (int argc, char* argv[])
 		std::cout << std::endl;
 	}
 
-	free(localX); free(localy);
+	free(localX); 
 	free(cnts); free(displs);
 	free(cnts2); free(displs2);
 	
