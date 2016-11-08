@@ -272,11 +272,11 @@ void cabcd(	double *X,	//input args
 		// Update local alpha
 		gramst = MPI_Wtime();
 		dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_w, &incx, &one, alpha, &incx);
+		gramagg += MPI_Wtime() - gramst;
 		
 		memset(G, 0, sizeof(double)*gram_size*(gram_size+2));
 		memset(recvG, 0, sizeof(double)*gram_size*(gram_size+2));
 		memset(del_w, 0, sizeof(double)*gram_size);
-		gramagg += MPI_Wtime() - gramst;
 		/*
 		 * End Inner s-step loop
 		*/
@@ -390,23 +390,43 @@ int main (int argc, char* argv[])
 	if(rank == 0)
 		std::cout << "Calling CA-BCD with " << n <<  "-by-" << m << " matrix X and s = " << s << std::endl;
 	cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
-	algst = MPI_Wtime();
-	for(int i = 0; i < niter; ++i){
-		cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
-		
-		/*
-		if(rank == 0){
-			std::cout << "w = ";
-			for(int i = 0; i < n; ++i)
-				printf("%.4f ", w[i]);
-			std::cout << std::endl;
+	s = 1;
+	for(int k = 0; k < 5; ++k){
+		for(int j = 0; j < 4; ++j){
+			if(rank == 0){
+				std::cout << std::endl << std::endl;
+				std::cout << "b = " << b << std::endl;
+			}
+			cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
+			algst = MPI_Wtime();
+			for(int i = 0; i < niter; ++i){
+				cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
+				/*
+				if(rank == 0){
+					std::cout << "w = ";
+					for(int i = 0; i < n; ++i)
+						printf("%.4f ", w[i]);
+					std::cout << std::endl;
+				}
+				*/
+			}
+			algstp = MPI_Wtime();
+			if(rank == 0)
+				std::cout << std::endl << "Total CA-BCD time: " << (algstp - algst)/niter  << std::endl;
+			if(b == 1)
+				b = 3;
+			else
+				b *= 2;
 		}
-		*/
+		b = 1;
+		if( s == 1)
+			s = 4;
+		else
+			s *= 2;
+
+		if(rank == 0)
+			std::cout << std::endl << "Increasing s to " << s << std::endl;
 	}
-	algstp = MPI_Wtime();
-		
-	if(rank == 0)
-		std::cout << std::endl << "Total CA-BCD time: " << (algstp - algst)/niter  << std::endl;
 	/*
 	if(rank == 0){
 		std::cout << "w = ";

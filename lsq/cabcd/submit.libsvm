@@ -1,0 +1,54 @@
+#!/bin/bash
+#SBATCH -J block2_cabcd_covtype.txt_1h        # job name
+#SBATCH -o block2_cabcd_covtype.txt_1h.o%j       # output and error file name (%j expands to jobID)
+#SBATCH -N 8       # total number of mpi tasks requested
+#SBATCH -p debug     # queue (partition) -- normal, development, etc.
+#SBATCH -t 00:20:00        # run time (hh:mm:ss) - 1.5 hours
+#SBATCH -A mp156
+#SBATCH -L SCRATCH
+#SBATCH --mail-user=aditya08@berkeley.edu
+#SBATCH --mail-type=end    # email me when the job finishes
+
+echo "Running s choice experiments"
+         
+./run.sh 192 ../../data/covtype.txt 581012 54 .004 40000 .001 100 10 1 1 2 8
+#echo ""
+#echo ""
+#echo " s = 4"
+#./run.sh 3072 ../../data/a9a.txt 128561 123 .004 40000 .001 100 10 1 4 3 1232
+#echo ""
+#echo ""
+#echo " s = 128"
+#./run.sh 3072 ../../data/a9a.txt 128561 123 .004 40000 .001 100 10 1 32 3 128
+#echo ""
+#echo ""
+#echo " s = 128"
+#./run.sh 3072 ../../data/a9a.txt 128561 123 .004 40000 .001 100 10 1 32 3 128
+#echo ""
+#echo ""
+#echo " s = 128"
+#./run.sh 3072 ../../data/a9a.txt 128561 123 .004 40000 .001 100 10 1 32 3 1232
+#echo ""
+#echo ""
+#echo "Increasing block size to 3"
+#echo ""
+#echo ""
+#./run.sh 3072 ../../data/a9a.txt 128561 123 .004 40000 .001 100 10 3 1 3 1232
+#echo ""
+#echo ""
+#echo " s = 4"
+#./run.sh 3072 ../../data/a9a.txt 128561 123 .004 40000 .001 100 10 3 4 3 1232
+#echo ""
+#echo ""
+#echo " s = 128"
+#./run.sh 3072 ../../data/a9a.txt 128561 123 .004 40000 .001 100 10 3 32 3 128
+#echo ""
+#echo ""
+#echo " s = 128"
+#./run.sh 3072 ../../data/a9a.txt 128561 123 .004 40000 .001 100 10 3 32 3 128
+#echo ""
+#echo ""
+#echo " s = 128"
+#./run.sh 3072 ../../data/a9a.txt 128561 123 .004 40000 .001 100 10 3 32 3 1232
+#echo ""
+#echo ""

@@ -1,0 +1,96 @@
+#!/bin/bash
+#SBATCH -J cabcd_weaksmall_3k        # job name
+#SBATCH -o cabcd_weaksmall_3k.o%j       # output and error file name (%j expands to jobID)
+#SBATCH -N 128       # total number of mpi tasks requested
+#SBATCH -p debug     # queue (partition) -- normal, development, etc.
+#SBATCH -t 00:06:00        # run time (hh:mm:ss) - 1.5 hours
+#SBATCH -A mp156
+#SBATCH -L SCRATCH
+#SBATCH --mail-user=aditya08@berkeley.edu
+#SBATCH --mail-type=end    # email me when the job finishes
+
+echo "Running s choice experiments"
+         
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 1 5 32
+#./run.sh 7632 none 3145754 1024 .004 40000 .001 100 10 1 1 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 1 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 1 5 32
+./run.sh 3072 none 786432 1024 .004 40000 .001 100 10 1 1 3 128
+
+
+#echo ""
+#echo ""
+#echo " s = 4"
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 2 5 32
+#./run.sh 7632 none 3145754 1024 .004 40000 .001 100 10 1 2 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 2 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 2 5 32
+#./run.sh 8 ../../data/covtype.txt 581012 54 .004 40000 .001 100 10 1 4 3 1
+#echo ""
+#echo ""
+#echo " s = 8"
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 3 5 32
+#./run.sh 7632 none 3145754 1024 .004 40000 .001 100 10 1 3 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 3 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 3 5 32
+#./run.sh 8 ../../data/covtype.txt 581012 54 .004 40000 .001 100 10 1 8 3 1
+#echo ""
+#echo ""
+#echo " s = 32"
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 4 5 32
+#./run.sh 7632 none 3145754 1024 .004 40000 .001 100 10 1 4 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 4 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 4 5 32
+#./run.sh 8 ../../data/covtype.txt 581012 54 .004 40000 .001 100 10 1 32 3 1
+#echo ""
+#echo ""
+#echo " s = 32"
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 5 5 32
+#./run.sh 7632 none 3145754 1024 .004 40000 .001 100 10 1 5 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 5 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 1 5 5 32
+#./run.sh 8 ../../data/covtype.txt 581012 54 .004 40000 .001 100 10 1 32 3 1
+#echo ""
+#echo ""
+#echo "Increasing block size to 3"
+#echo ""
+#echo ""
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 1 5 32
+#./run.sh 7632 none 3145754 1024 .004 40000 .001 100 10 3 1 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 1 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 1 5 32
+#./run.sh 8 ../../data/covtype.txt 581012 54 .004 40000 .001 100 10 3 1 3 1
+#echo ""
+#echo ""
+#echo " s = 4"
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 7632 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 8 ../../data/covtype.txt 581012 54 .004 40000 .001 100 10 3 4 3 1
+#echo ""
+#echo ""
+#echo " s = 32"
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 7632 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 8 ../../data/covtype.txt 581012 54 .004 40000 .001 100 10 3 8 3 1
+#echo ""
+#echo ""
+#echo " s = 32"
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 7632 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 8 ../../data/covtype.txt 581012 54 .004 40000 .001 100 10 3 32 3 1
+#echo ""
+#echo ""
+#echo " s = 32"
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 7632 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 8 none 3145754 1024 .004 40000 .001 100 10 3 5 5 32
+#./run.sh 8 ../../data/covtype.txt 581012 54 .004 40000 .001 100 10 3 32 3 1
+#echo ""
+#echo ""
