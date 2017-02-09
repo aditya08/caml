@@ -4,10 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <mpi.h>
 
 #include "util.h"
 
 int main(int argc, char* argv[]){
+	
+	MPI_Init(&argc, &argv);
+
 	char* fname = argv[1];
 	int m = atoi(argv[2]);
 	int n = atoi(argv[3]);
@@ -15,18 +19,23 @@ int main(int argc, char* argv[]){
 	int p = atoi(argv[5]);
 
 	double *A, *y;
-
-	std::cout << "fname = "<< fname << " m = " << m << " n = " << n << std::endl;
 	
+	
+	
+	std::cout << "fname = "<< fname << " m = " << m << " n = " << n << std::endl;
+
 	assert(0==Malloc_aligned(double, A, m*n, ALIGN));
 	assert(0==Malloc_aligned(double, y, m, ALIGN));
 
 	libsvmread(fname, m, n, A, m, y);
-	
+	/*
 	for(int i = 0; i < 2; ++i)
 		for(int j = 0; j < n; ++j)
 			std::cout << A[i*n + j] << std::endl;
+	*/
 
+	MPI_Finalize();
+	return 0;
 	int *cnts, *displs, *cnts2, *displs2;
 	cnts = Malloc(int, p);
 	cnts2 = Malloc(int, p);
