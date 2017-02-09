@@ -10,7 +10,7 @@
 
 #include "util.h"
 
-void libsvmread(const char* fname, int m, int n, double *A, int leny, double *y){
+std::string libsvmread(const char* fname, int m, int n, double *A, int leny, double *y){
 	int i = 0, idx = 0;
 
 	int rank;
@@ -48,6 +48,7 @@ void libsvmread(const char* fname, int m, int n, double *A, int leny, double *y)
 
 	ierr = MPI_File_read_at_all(in, start, rdchars, localrdsize, MPI_CHAR, MPI_STATUS_IGNORE);
 	assert(!ierr);
+	MPI_File_close(&in);
 	
 	int lstart = 0, lend = localrdsize - 1;
 	if(rank != 0){
@@ -82,19 +83,34 @@ void libsvmread(const char* fname, int m, int n, double *A, int leny, double *y)
 	ierr = MPI_File_open(MPI_COMM_WORLD, "out.txt", MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &out);
 	
 	MPI_File_write_at_all(out, (MPI_Offset)(start + (MPI_Offset)lstart), &rdchars[lstart], localrdsize, MPI_CHAR, MPI_STATUS_IGNORE);
+	MPI_File_close(&out);
 
-	/* Parse file chunk into the dense vector y and local CSR/CSC matrices based on primal or dual method.
-	 * Matrix is already in 1D-column layout. Need to perform All_to_allv for 1D-row.
+	return lines;
+
+	
+}
+
+void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector<int> &colidx, std::vector<double> &vals, std::vector<double> &y, std::vector<int> &col_offsets){
+	/* Parse file chunk into the dense vector y and local 3-array CSR matrices based.
+	 * Matrix is already in 1D-column layout (Good for primal method). Need to perform All_to_allv for 1D-row (good for dual method).
 	 * 
 	 * Also, ensure that nnz per rank is roughly load-balanced.
-	 * Easiest to just construct CSR/CSC matrices and compare length of values vector.
+	 * Easiest to just construct CSRmatrices and compare length of vals vector.
 	 * 
-	 * Compare performance with/without LB.
+	 * Load Balance if needed. Compare performance with/without LB.
 	 * */
 	
+	int nrows = 0;
+	std::size_t prev = 0, curr = 0;
+	while( (curr = lines.find('\n', prev)) != std::string::npos ){
+		std::cout << lines.substr(prev, curr) << std::endl;
+		prev = curr;
+	}
 
-	MPI_File_close(&in);
-	MPI_File_close(&out);
+}
+
+void parse_lines_to_csc(){
+
 }
 
 void staticLB_1d(int m, int n, int npes, int flag, int *cnts, int *displs, int *cnts2, int *displs2)
