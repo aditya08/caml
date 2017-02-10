@@ -168,7 +168,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 			std::cout << nnz_cnts[i] << '\t';
 		std::cout << "Max NNZ: " << max << std::endl;
 		std::cout << "Min NNZ: " << min << std::endl;
-		
+		std::cout << "Avg NNZ: " << (float)sum/npes << std::endl;
 	}
 }
 
