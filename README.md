@@ -1,4 +1,4 @@
-# CA-ML (Under Active Development/Not ready for Release)
+# CA-ML (Not Ready for Release)
 A collection of Communication-Avoiding Machine Learning (CA-ML) algorithms for (currently) ridge regression.
 Protected by a two-clause BSD License.
 
