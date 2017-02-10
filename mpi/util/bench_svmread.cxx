@@ -11,6 +11,10 @@
 int main(int argc, char* argv[]){
 	
 	MPI_Init(&argc, &argv);
+	
+	int rank;
+
+	MPI_Comm_size(MPI_COMM_WORLD, &rank);
 
 	char* fname = argv[1];
 	int m = atoi(argv[2]);
@@ -18,16 +22,7 @@ int main(int argc, char* argv[]){
 	int flag = atoi(argv[4]);
 	int p = atoi(argv[5]);
 
-	double *A, *y;
-	
-	
-	
-	std::cout << "fname = "<< fname << " m = " << m << " n = " << n << std::endl;
-
-	assert(0==Malloc_aligned(double, A, m*n, ALIGN));
-	assert(0==Malloc_aligned(double, y, m, ALIGN));
-
-	std::string lines = libsvmread(fname, m, n, A, m, y);
+	std::string lines = libsvmread(fname, m, n);
 	/*
 	for(int i = 0; i < 2; ++i)
 		for(int j = 0; j < n; ++j)
@@ -55,6 +50,4 @@ int main(int argc, char* argv[]){
 		std::cout  << "displs2[" << i << "] = "<< displs2[i] << " ";
 	}
 	std::cout << std::endl;
-
-	free(A); free(y);
 }

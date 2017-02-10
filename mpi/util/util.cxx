@@ -10,7 +10,7 @@
 
 #include "util.h"
 
-std::string libsvmread(const char* fname, int m, int n, double *A, int leny, double *y){
+std::string libsvmread(const char* fname, int m, int n){
 	int i = 0, idx = 0;
 
 	int rank;
@@ -99,14 +99,77 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 	 * 
 	 * Load Balance if needed. Compare performance with/without LB.
 	 * */
-	
-	int nrows = 0;
-	std::size_t prev = 0, curr = 0;
-	while( (curr = lines.find('\n', prev)) != std::string::npos ){
-		std::cout << lines.substr(prev, curr) << std::endl;
-		prev = curr;
-	}
 
+	int rank, npes;
+
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &npes);
+
+	int nrows = 0, nnz = 0;
+	std::size_t curl = 0, curw = 0, curc = 0;
+	std::string line;
+	std::string word;
+	std::string tmp;
+
+	rowidx.push_back(1);
+
+	while( (curl = lines.find('\n')) != std::string::npos ){
+		line = lines.substr(0,curl);
+		//std::cout << line << std::endl;
+		lines.erase(0,curl + 1);
+		
+		while( line.length() != 0){
+			curw = (line.find(' ') != std::string::npos) ? (line.find(' ')) : line.length();
+			word = line.substr(0, curw);
+			curc = word.find(':');
+			tmp = word.substr(0,curc);
+			if(curc == std::string::npos){
+				y.push_back(atof(tmp.c_str()));
+				word.erase(0, curc + 1);
+				//std::cout << y.back() << ' ';
+			}
+			else{
+				//parse to one-indexed, 3-array CSR matrix
+				colidx.push_back(atoi(tmp.c_str()));
+				word.erase(0, curc + 1);
+				tmp = word.substr(0,word.length());
+				vals.push_back(atof(tmp.c_str()));
+				nnz++;
+				//std::cout << colidx.back() << ':' << vals.back() << ' ';
+			}
+
+			line.erase(0,curw + 1);
+		}
+		//std::cout << std::endl;
+		rowidx.push_back(nnz + rowidx[nrows]);
+		nnz = 0;
+		nrows++;
+	}
+	nnz = vals.size();
+	std::cout << "Processor " << rank << " has " << nrows << " rows with " << nnz << " nnzs." << std::endl;
+	int *nnz_cnts;
+	if(rank == 0) Malloc(int, npes);
+	MPI_Gather(&nnz, 1, MPI_INT, nnz_cnts, npes, MPI_INT, 0, MPI_COMM_WORLD);
+
+	if(rank == 0){
+	//Print statistics on the load per processor. Used to determine the need for load balancing.
+		int sum = 0;
+		int max = nnz_cnts[0];
+		int min = nnz_cnts[0];
+		std::cout << "Processors:\t";
+		for(int i = 0; i < npes; ++i){
+			std::cout << i << '\t';
+			sum += nnz_cnts[i];
+			max = (max < nnz_cnts[i]) ? nnz_cnts[i] : max;
+			min = (min > nnz_cnts[i]) ? nnz_cnts[i] : min;
+		}
+		std::cout << "\nNNZs:\t"
+		for(int i = 0; i < npes; ++i)
+			std::cout << nnz_cnts[i] << '\t';
+		std::cout << "Max NNZ: " << max << std::endl;
+		std::cout << "Min NNZ: " << min << std::endl;
+		
+	}
 }
 
 void parse_lines_to_csc(){
