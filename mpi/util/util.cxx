@@ -1,12 +1,14 @@
 #include <string>
 #include <string.h>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
 #include <mpi.h>
+
 
 #include "util.h"
 
@@ -27,7 +29,7 @@ std::string libsvmread(const char* fname, int m, int n){
 	int overlap = n*100;
 	char *rdchars;
 
-
+	double tread = MPI_Wtime();
 	MPI_File in;
 	int ierr = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &in);
 	assert(!ierr);
@@ -68,6 +70,13 @@ std::string libsvmread(const char* fname, int m, int n){
 
 	std::string lines(rdchars + lstart, localrdsize);
 	
+	tread = MPI_Wtime() - tread;
+	double tmax;
+	MPI_Reduce(&tread, &tmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+	
+	if(rank == 0)
+		std::cout << "Max read time: " << tmax*1e3 << " ms" << std::endl;
+
 	//int currank = 0;
 	//while(currank < npes){
 	//	if(currank == rank){
@@ -79,15 +88,22 @@ std::string libsvmread(const char* fname, int m, int n){
 
 	//}
 	//
-	MPI_File out;
-	ierr = MPI_File_open(MPI_COMM_WORLD, "out.txt", MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &out);
+	//
+		/*
+		MPI_File out;
+		ierr = MPI_File_open(MPI_COMM_WORLD, "out.txt", MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &out);
+		
+		MPI_File_write_at_all(out, (MPI_Offset)(start + (MPI_Offset)lstart), &rdchars[lstart], localrdsize, MPI_CHAR, MPI_STATUS_IGNORE);
+		MPI_File_close(&out);
+		*/
 	
-	MPI_File_write_at_all(out, (MPI_Offset)(start + (MPI_Offset)lstart), &rdchars[lstart], localrdsize, MPI_CHAR, MPI_STATUS_IGNORE);
-	MPI_File_close(&out);
-
 	return lines;
 
 	
+}
+
+int compare(const void *a, const void *b){
+	return ( *(int *)a - *(int *)b );
 }
 
 void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector<int> &colidx, std::vector<double> &vals, std::vector<double> &y, std::vector<int> &col_offsets){
@@ -99,11 +115,14 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 	 * 
 	 * Load Balance if needed. Compare performance with/without LB.
 	 * */
-
 	int rank, npes;
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &npes);
+	
+	//if(rank == 0) std::cout << "Starting parse..." << std::endl;
+
+	double tparse = MPI_Wtime();
 
 	int nrows = 0, nnz = 0;
 	std::size_t curl = 0, curw = 0, curc = 0;
@@ -145,30 +164,59 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		nnz = 0;
 		nrows++;
 	}
-	nnz = vals.size();
-	std::cout << "Processor " << rank << " has " << nrows << " rows with " << nnz << " nnzs." << std::endl;
-	int *nnz_cnts;
-	if(rank == 0) Malloc(int, npes);
-	MPI_Gather(&nnz, 1, MPI_INT, nnz_cnts, npes, MPI_INT, 0, MPI_COMM_WORLD);
+	nnz = (int)vals.size();
+
+	tparse = MPI_Wtime() - tparse;
+	double tmax;
+
+	MPI_Reduce(&tparse, &tmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+	if(rank == 0) std::cout << "Max parse time " << tmax*1e3 << " ms" << std::endl;
+
+	double tstat = MPI_Wtime();
+
+	//std::cout << "Processor " << rank << " has " << nrows << " rows with " << nnz << " nnzs." << std::endl;
+	int *nnz_cnts = NULL;
+	if(rank == 0) nnz_cnts =  Malloc(int, npes);
+	MPI_Gather((void*)&nnz, 1, MPI_INT, (void*)nnz_cnts, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	
+	int sum, max, min, med;
 
 	if(rank == 0){
+		sum = 0;
+		max = nnz_cnts[0];
+		min = nnz_cnts[0];
 	//Print statistics on the load per processor. Used to determine the need for load balancing.
-		int sum = 0;
-		int max = nnz_cnts[0];
-		int min = nnz_cnts[0];
-		std::cout << "Processors:\t";
+		//std::cout << "Procs:\t";
 		for(int i = 0; i < npes; ++i){
-			std::cout << i << '\t';
+		//	std::cout << i << '\t';
 			sum += nnz_cnts[i];
 			max = (max < nnz_cnts[i]) ? nnz_cnts[i] : max;
 			min = (min > nnz_cnts[i]) ? nnz_cnts[i] : min;
 		}
-		std::cout << "\nNNZs:\t"
+		/*
+		std::cout << "\nNNZs:\t";
 		for(int i = 0; i < npes; ++i)
 			std::cout << nnz_cnts[i] << '\t';
-		std::cout << "Max NNZ: " << max << std::endl;
-		std::cout << "Min NNZ: " << min << std::endl;
-		std::cout << "Avg NNZ: " << (float)sum/npes << std::endl;
+		std::cout << std::endl << std::endl;;
+		*/
+		qsort(nnz_cnts, npes, sizeof(int), compare);
+		med = (npes % 2 == 0) ? ((nnz_cnts[(npes-1)/2] + nnz_cnts[(npes-1)/2 + 1])/2) : nnz_cnts[npes/2];
+	}
+
+	tstat = MPI_Wtime() - tstat;
+	MPI_Reduce(&tstat, &tmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+	if(rank == 0){
+	
+		std::cout << "Max stats time " << tstat*1e3 << " ms" << std::endl;
+		
+		std::cout << std::endl << std::endl;
+		
+		std::cout << "//*********************************//" << std::endl;
+		std::cout << "//\tMin NNZ: " << min  << std::endl;
+		std::cout << "//\tMax NNZ: " << max << " (Load Imbalance: " << std::setprecision(2) << std::fixed << (float)(max - (sum/npes))/(sum/npes)*100 << "%)" << std::endl;
+		std::cout << "//\tMed NNZ: " << med <<  std::endl;
+		std::cout << "//\tAvg NNZ: " << (float)sum/npes << std::endl;
+		std::cout << "//*********************************//" << std::endl;
 	}
 }
 

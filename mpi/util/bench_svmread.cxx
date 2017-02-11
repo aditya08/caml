@@ -28,6 +28,7 @@ int main(int argc, char* argv[]){
 		for(int j = 0; j < n; ++j)
 			std::cout << A[i*n + j] << std::endl;
 	*/
+
 	std::vector<int> rowidx, colidx, rowoffsets;
 	std::vector<double> y, vals;
 	parse_lines_to_csr(lines, rowidx, colidx, vals, y, rowoffsets);
