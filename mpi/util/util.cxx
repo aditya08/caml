@@ -12,6 +12,7 @@
 
 #include "util.h"
 
+/*Change overlap so that processors **go back** to the last newline... instead of going forward!! Might prevent fall-off from end.*/
 std::string libsvmread(const char* fname, int m, int n){
 	int i = 0, idx = 0;
 
@@ -25,8 +26,8 @@ std::string libsvmread(const char* fname, int m, int n){
 	MPI_Offset fsize;
 	MPI_Offset start;
 
-	int localrdsize;
-	int overlap = n*100;
+	int localrdsize = 0;
+	int overlap = n*10;
 	char *rdchars;
 
 	double tread = MPI_Wtime();
@@ -35,41 +36,52 @@ std::string libsvmread(const char* fname, int m, int n){
 	assert(!ierr);
 
 	MPI_File_get_size(in, &fsize);
+	//fsize--;
 
 	localrdsize = fsize/npes;
 	start = rank*localrdsize;
 	end = localrdsize + start - 1;
 
-	if(rank == npes - 1) end = fsize - 1;
+	if(rank == npes - 1) end = fsize;
 
 	if(rank != npes - 1) end += overlap;
+	
+	//if(end > fsize - 1) end = fsize - 1;
 
 	localrdsize = end - start + 1;
 
 	rdchars = Malloc(char,localrdsize+1);
-
+	memset(rdchars, sizeof(char), localrdsize+1);
+//	std::cout << "start rank: " << rank << " " <<  start << " " << end << " " << localrdsize << std::endl;
+	
 	ierr = MPI_File_read_at_all(in, start, rdchars, localrdsize, MPI_CHAR, MPI_STATUS_IGNORE);
 	assert(!ierr);
 	MPI_File_close(&in);
 	
 	int lstart = 0, lend = localrdsize - 1;
 	if(rank != 0){
-		while(rdchars[lstart] != '\n')
+		//if(rank == npes - 1)
+		//	std::cout << "last procs's first char: " << rdchars[0]<< std::endl;
+		while(rdchars[lstart] != '\n' && lstart < lend)
 			lstart++;
 		lstart++;
 	}
 
 	if(rank != npes - 1){
 		lend-= overlap;
-		while(rdchars[lend] != '\n')
+		if(rdchars[lend] == '\n')
+			lend++;
+		while(rdchars[lend] != '\n' && lend < localrdsize - 1)
 			lend++;
 	}
 
+	
+	//std::cout << rank  << " f " << start << " " << localrdsize << std::endl;
 	localrdsize = lend - lstart + 1;
 	//rdchars[localrdsize] = '\0';
-
+	//std::cout << "started parsing rank: " << rank << " " <<  lstart << " " << lend << " " << localrdsize << std::endl;
+	//std::cout << rank << " s " << lstart << " " << localrdsize << std::endl;
 	std::string lines(rdchars + lstart, localrdsize);
-	
 	tread = MPI_Wtime() - tread;
 	double tmax;
 	MPI_Reduce(&tread, &tmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -89,14 +101,14 @@ std::string libsvmread(const char* fname, int m, int n){
 	//}
 	//
 	//
-		/*
+	//
+	/*
 		MPI_File out;
 		ierr = MPI_File_open(MPI_COMM_WORLD, "out.txt", MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &out);
 		
-		MPI_File_write_at_all(out, (MPI_Offset)(start + (MPI_Offset)lstart), &rdchars[lstart], localrdsize, MPI_CHAR, MPI_STATUS_IGNORE);
+		MPI_File_write_at_all(out, (MPI_Offset)(start + (MPI_Offset)lstart), lines.c_str(), localrdsize, MPI_CHAR, MPI_STATUS_IGNORE);
 		MPI_File_close(&out);
-		*/
-	
+	*/
 	return lines;
 
 	
@@ -106,7 +118,7 @@ int compare(const void *a, const void *b){
 	return ( *(int *)a - *(int *)b );
 }
 
-void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector<int> &colidx, std::vector<double> &vals, std::vector<double> &y, std::vector<int> &col_offsets){
+void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector<int> &colidx, std::vector<double> &vals, std::vector<double> &y){
 	/* Parse file chunk into the dense vector y and local 3-array CSR matrices based.
 	 * Matrix is already in 1D-column layout (Good for primal method). Need to perform All_to_allv for 1D-row (good for dual method).
 	 * 
@@ -131,21 +143,23 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 	std::string tmp;
 
 	rowidx.push_back(1);
-
-	while( (curl = lines.find('\n')) != std::string::npos ){
+	//std::cout << "original " << lines << std::endl << std::endl;
+	while( lines.length() != 0){
+		curl = (lines.find('\n') != std::string::npos) ? (lines.find('\n')) : lines.length();
 		line = lines.substr(0,curl);
-		//std::cout << line << std::endl;
+		//std::cout << lines<< std::endl;
 		lines.erase(0,curl + 1);
+		//std::cout << lines<< std::endl;
 		
 		while( line.length() != 0){
 			curw = (line.find(' ') != std::string::npos) ? (line.find(' ')) : line.length();
 			word = line.substr(0, curw);
 			curc = word.find(':');
 			tmp = word.substr(0,curc);
-			if(curc == std::string::npos){
+			if(curc == std::string::npos){ // && tmp.length() != 0){
+				//std::cout << tmp  << " length = " << tmp.length() << ' ' << word << std::endl;
 				y.push_back(atof(tmp.c_str()));
 				word.erase(0, curc + 1);
-				//std::cout << y.back() << ' ';
 			}
 			else{
 				//parse to one-indexed, 3-array CSR matrix
@@ -160,17 +174,29 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 			line.erase(0,curw + 1);
 		}
 		//std::cout << std::endl;
-		rowidx.push_back(nnz + rowidx[nrows]);
-		nnz = 0;
-		nrows++;
+		if(nnz > 0){
+			rowidx.push_back(nnz + rowidx[nrows]);
+			nnz = 0;
+			nrows++;
+		}
 	}
+	/*
+	if(rank == 0){
+		std::cout << "rowidx" << std::endl;
+		for(int i = 0; i < rowidx.size(); ++i)
+			std::cout << rowidx[i] << ' ';
+		std::cout << std::endl;
+	}
+	*/
 	nnz = (int)vals.size();
-
+	if(rank == npes - 1)
+		y.pop_back();
 	tparse = MPI_Wtime() - tparse;
 	double tmax;
 
 	MPI_Reduce(&tparse, &tmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 	if(rank == 0) std::cout << "Max parse time " << tmax*1e3 << " ms" << std::endl;
+
 
 	double tstat = MPI_Wtime();
 
@@ -217,6 +243,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		std::cout << "//\tMed NNZ: " << med <<  std::endl;
 		std::cout << "//\tAvg NNZ: " << (float)sum/npes << std::endl;
 		std::cout << "//*********************************//" << std::endl;
+		std::cout << std::endl << std::endl;
 	}
 }
 

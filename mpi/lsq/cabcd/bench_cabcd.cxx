@@ -54,17 +54,19 @@ int main (int argc, char* argv[])
 
 	
 	int flag = 0;
-	cnts = Malloc(int, npes);
-	cnts2 = Malloc(int, npes);
-	displs = Malloc(int, npes);
-	displs2 = Malloc(int, npes);
-
-	staticLB_1d(m, n, npes, flag, cnts, displs, cnts2, displs2);
-
-	assert(0==Malloc_aligned(double, localX, cnts[rank], ALIGN));
-	assert(0==Malloc_aligned(double, localy, cnts2[rank], ALIGN));
+	std::string lines = libsvmread(fname, m, n);
 	
-	if(rank == 0 && strcmp(fname, "none") != 0){
+	std::vector<int> rowidx, colidx;
+	std::vector<double> y, vals;
+
+	parse_lines_to_csr(lines, rowidx, colidx, vals, y);
+
+	//staticLB_1d(m, n, npes, flag, cnts, displs, cnts2, displs2);
+
+	//assert(0==Malloc_aligned(double, localX, cnts[rank], ALIGN));
+	//assert(0==Malloc_aligned(double, localy, cnts2[rank], ALIGN));
+	
+	/*if(rank == 0 && strcmp(fname, "none") != 0){
 		assert(0==Malloc_aligned(double, y, m, ALIGN));
 		assert(0==Malloc_aligned(double, X, m*n, ALIGN));
 		std::cout << "Reading file on rank 0" << std::endl;
@@ -72,25 +74,14 @@ int main (int argc, char* argv[])
 		libsvmread(fname, m, n, X, m, y);
 		double iostp = MPI_Wtime();
 		std::cout << "Finished reading file in " << iostp - iost << " seconds." << std::endl;
-	}
+	}*/
 
 	//compute scatter offsets
-
-	if(strcmp(fname, "none") != 0){
-		double scatterst = MPI_Wtime();
-		MPI_Scatterv(X, cnts, displs, MPI_DOUBLE, localX, cnts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
-		MPI_Scatterv(y, cnts2, displs2, MPI_DOUBLE, localy, cnts2[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
-		double scatterstp = MPI_Wtime();
-		if(rank == 0){
-			std::cout << "Finished Scatter of X and y in " << scatterstp - scatterst << " seconds." << std::endl;
-			free(X); free(y);
-		}
-	}
-	else{
+	if(strcmp(fname, "none") == 0){
 		srand48(seed+rank);
-		for(int i = 0; i < cnts[rank]; ++i)
+		for(int i = 0; i < m/npes; ++i)
 			localX[i] = drand48();
-		for(int i = 0; i < cnts2[rank]; ++i)
+		for(int i = 0; i < m/npes; ++i)
 			localy[i] = drand48();
 	}
 	double algst, algstp;
@@ -113,10 +104,10 @@ int main (int argc, char* argv[])
 
 	if(rank == 0)
 		std::cout << "Calling CA-BCD with " << n <<  "-by-" << m << " matrix X and s = " << s << std::endl;
-	cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
+	cabcd(rowidx, colidx, vals, y, lambda, s, b, maxit, tol, seed, freq, w, comm);
 	algst = MPI_Wtime();
 	for(int i = 0; i < niter; ++i){
-		cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
+	cabcd(rowidx, colidx, vals, y, lambda, s, b, maxit, tol, seed, freq, w, comm);
 		
 		/*
 		if(rank == 0){

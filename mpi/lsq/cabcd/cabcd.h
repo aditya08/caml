@@ -2,10 +2,14 @@
 #define DEVARAKONDA_dcb882eca214420ca7527adf95741bb5
 	
 	#include "mpi.h"
-	void cabcd(	double *X,
+	#include <vector>
+
+	void cabcd(	std::vector<int> &rowidx,
+				std::vector<int> &colidx,
+				std::vector<double> &vals,
 				int m,
 				int n,
-				double *y,
+				std::vector<double> &y,
 				int len,
 				double lambda,
 				int s,
