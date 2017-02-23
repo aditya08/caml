@@ -35,11 +35,12 @@ int main(int argc, char* argv[]){
 	std::vector<int> rowidx, colidx;
 	std::vector<double> y, vals;
 	parse_lines_to_csr(lines, rowidx, colidx, vals, y);
-	
-	for(int i = 0; i < colidx.size(); ++i)
-		std::cout << colidx[i] << ' ';
+	std::cout << "rank = " << rank << " ";
+	for(int i = 0; i < y.size(); ++i)
+		std::cout << y[i] << ' ';
 	std::cout << std::endl;
 	
+
 	char trans = 'T';
 	m = rowidx.size() - 1;
 	if(rank == 0)
@@ -51,10 +52,12 @@ int main(int argc, char* argv[]){
 	
 	mkl_dcsrmultd(&trans, &m, &n, &n, &vals[0], &colidx[0], &rowidx[0],  &vals[0], &colidx[0], &rowidx[0], G, &n);
 	MPI_Reduce(G, recvG, n*n, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
+	
+	/*
 	if(rank == 0){
 		for(int i = 0; i < n; ++i) std::cout << std::setprecision(4) << std::fixed << recvG[i*n + i] << " ";
 		std::cout << std::endl;
-	}
+	}*/
 
 	int cursamp = 0, count = 0, b = 3;
 	std::vector<int> index;
@@ -65,12 +68,12 @@ int main(int argc, char* argv[]){
 		else{
 			index.push_back(count);
 			if(rank == 0)
-				std::cout << count << ' ';
+				//std::cout << count << ' ';
 			++count; ++cursamp;
 		}
 	}
-	if(rank == 0)
-		std::cout << std::endl;
+	//if(rank == 0)
+		//std::cout << std::endl;
 
 	std::vector<int> samprowidx(rowidx.size(), 0), sampcolidx;
 	std::vector<double> sampvals;
@@ -96,13 +99,13 @@ int main(int argc, char* argv[]){
 		}
 	}
 
-	if(rank == 0){
+	/*if(rank == 0){
 		std::cout << "rank 0 sampvals length: " << sampvals.size() << " there should be: " << m*b << std::endl;
 		std::cout << "rank 0 sampcolidx length: " << sampcolidx.size() << " there should be: " << m*b << std::endl;
 		std::cout << "rank 0 samprowidx length: " << samprowidx.size() << " there should be: " << m+1 << std::endl;
 		std::cout << "rank 0 samprowidx[length - 1]: " << samprowidx[m] << std::endl;
 		
-	}
+	}*/
 
 	/*
 	for(int i = 0; i < sampvals.size(); ++i)
@@ -120,10 +123,10 @@ int main(int argc, char* argv[]){
 	mkl_dcsrmultd(&trans, &m, &b, &b, &sampvals[0], &sampcolidx[0], &samprowidx[0],  &sampvals[0], &sampcolidx[0], &samprowidx[0], sampG, &b);
 	
 	MPI_Reduce(sampG, samprecvG, b*b, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
-	if(rank == 0){
+	/*if(rank == 0){
 		for(int i = 0; i < b; ++i) std::cout << std::setprecision(4) << std::fixed << samprecvG[i*b + i] << " ";
 		std::cout << std::endl;
-	}
+	}*/
 	
 	free(G); free(recvG); free(sampG); free(samprecvG);
 

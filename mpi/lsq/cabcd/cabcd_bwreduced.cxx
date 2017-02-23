@@ -204,17 +204,55 @@ void cabcd(	std::vector<int> &rowidx,
 		dgemv(&transa, &gram_size, &len, &alp, Xsamp, &gram_size, alpha, &incx, &zero, G + (s*b*s*b), &incx);
 		dgemv(&transa, &gram_size, &len, &alp, Xsamp, &gram_size, y, &incx, &zero, G + (s*b*(s*b+1)), &incx);
 		*/
+		int lowersize = (gram_size*(gram_size+1))/2;
+		std::vector<double> lowerG(lowersize + (gram_size*2));
+		std::vector<double> recvlowerG(lowersize + (gram_size*2));
+
+		for(int i = 0; i < gram_size; ++i){
+			for(int j = 0; j < i+1; ++j){
+				lowerG[i + j*s*b] = G[i + j*s*b];
+			}
+			//lowerG[i + lowersize] = G[i + gram_size*gram_size];
+			//lowerG[i + lowersize + gram_size] = G[i + gram_size*(gram_size+1)];
+
+		}
+
+		std::memcpy(&lowerG[lowersize], G + gram_size*gram_size, sizeof(double)*(gram_size*2));
+
 		gramstp = MPI_Wtime();
 		gramagg += gramstp - gramst;
 
 		// Reduce and Broadcast: Sum partial Gram and partial residual components.
 		//std::cout << "Calling ALLREDUCE" << std::endl;
 		commst = MPI_Wtime();
-		MPI_Allreduce(G,recvG,s*b*(s*b+2), MPI_DOUBLE, MPI_SUM, comm);
+		MPI_Allreduce(&lowerG[0], &recvlowerG[0], lowersize + gram_size*2, MPI_DOUBLE, MPI_SUM, comm);
 		commstp = MPI_Wtime();
 		commagg += commstp - commst;
 		//std::cout << "Adding lambda to diagonal" << std::endl;
 		innerst = MPI_Wtime();
+
+		for(int i = 0; i < gram_size; ++i){
+			for(int j = 0; j < i+1; ++j){
+				recvG[i+ j*s*b] = lowerG[i + j*s*b];
+				recvG[j + i*s*b] = lowerG[i + j*s*b];
+			}
+
+		}
+		std::memcpy(recvG + gram_size*gram_size, &recvlowerG[lowersize], sizeof(double)*(gram_size*2));
+		lowerG.clear();
+		recvlowerG.clear();
+		if(rank == 0){
+			for(int i = 0; i < gram_size*gram_size; ++i)
+				std::cout << recvG[i] << ' ';
+			std::cout << std::endl;
+
+			for(int i = 0; i < gram_size; ++i)
+				std::cout << recvG[i + ngram] << ' ';
+			std::cout << std::endl;
+			for(int i = 0; i < gram_size; ++i)
+				std::cout << recvG[i + ngram + gram_size] << ' ';
+			std::cout << std::endl;
+		}
 		for(int i =0; i < s*b; ++i)
 				recvG[i + i*s*b] += lambda;
 		/*
@@ -521,7 +559,7 @@ int main (int argc, char* argv[])
 	for(int k = 0; k < 4; ++k){
 		if(b > n)
 			continue;
-		for(int j = 0; j < 7; ++j){
+		for(int j = 0; j < 9; ++j){
 			if(rank == 0){
 				std::cout << std::endl << std::endl;
 				std::cout << "s = " << s << ", " << "b = " << b << std::endl;
@@ -548,12 +586,14 @@ int main (int argc, char* argv[])
 		}
 		s = 1;
 		b *= 2;
+		/*
 		if(rank == 0){
 			std::cout << "w = ";
 			for(int i = 0; i < n; ++i)
 				std::cout << std::setprecision(4) << std::fixed << w[i] << " ";
 			std::cout << std::endl;
 		}
+		*/
 	}
 	/*
 	if(rank == 0){

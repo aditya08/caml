@@ -123,6 +123,18 @@ void cabcd(	std::vector<int> &rowidx,
 			}
 			*/
 		}
+	std::vector<int> sortbuff(gram_size, -1);
+	std::memcpy(&sortbuff[0], index, sizeof(int)*gram_size);
+	qsort(&sortbuff[0], gram_size, sizeof(int), compare_idx);
+	int curidx = index[0];
+	std::vector<int> unique_cols;
+	unique_cols.push_back(curidx);
+	for(int i = 1; i < gram_size; ++i){
+		if(curidx != sortbuff[i]){
+			curidx = sortbuff[i];
+			unique_cols.push_back(curidx);
+		}
+	}
 	//if(rank == 0)
 	//std::cout << "Calling Sparse DGEMM, lambda = " << lambda << " iter = " << iter  << " s = " << s  << " b = " << b<< std::endl;
 
@@ -134,11 +146,11 @@ void cabcd(	std::vector<int> &rowidx,
 	for(int i = 1; i < rowidx.size(); ++i){
 		samprowidx[i] = samprowidx[i-1];
 		//std::cout << samprowidx.size()<< std::endl;
-		for(int k = 0; k < gram_size; ++k){
+		for(int k = 0; k < unique_cols.size(); ++k){
 			for(int j = rowidx[i-1]-1; j < rowidx[i]-1; ++j){
 				cidx = colidx[j];
 				tval = vals[j];
-				if(cidx == index[k]+1){
+				if(cidx == unique_cols[k]+1){
 					//std::cout << "currently i = " << i << std::endl;
 					sampcolidx.push_back(k+1);
 					sampvals.push_back(tval);
@@ -164,6 +176,15 @@ void cabcd(	std::vector<int> &rowidx,
 	//	std::cout << "sampcolidx length = " << sampcolidx.size() << std::endl;
 	//	std::cout << "norws = " << samprowidx.size() - 1 << std::endl;
 	//}
+	for(int i = 0; i < gram_size; ++i){
+		//TODO: need to sample without replacement
+		//if(rank ==0)
+		//	std::cout << "index = " << index[i] << std::endl;
+		//dcopy(&len, X + index[i], &m, Xsamp + i, &gram_size);
+		wsamp[i] = w[index[i]];
+	}
+	gram_size = unique_cols.size();
+	ngram = gram_size*gram_size;
 	mkl_dcsrmultd(&transb, &len, &gram_size, &gram_size, &sampvals[0], &sampcolidx[0], &samprowidx[0],  &sampvals[0], &sampcolidx[0], &samprowidx[0], G, &gram_size);
 	dscal(&ngram, &alp, G, &incx);
 		/*
@@ -171,13 +192,6 @@ void cabcd(	std::vector<int> &rowidx,
 			std::cout << G[i] << ' ';
 		std::cout << std::endl;
 		*/
-		for(int i = 0; i < gram_size; ++i){
-			//TODO: need to sample without replacement
-			//if(rank ==0)
-			//	std::cout << "index = " << index[i] << std::endl;
-			//dcopy(&len, X + index[i], &m, Xsamp + i, &gram_size);
-			wsamp[i] = w[index[i]];
-		}
 
 
 		//std::cout << "Xsamp[0] = " << Xsamp[0] << " Xsamp[1] = " << Xsamp[1] << std::endl;  
@@ -193,8 +207,8 @@ void cabcd(	std::vector<int> &rowidx,
 		//std::cout << "Calling DGEMV" << std::endl;
 		
 		//std::cout << "len: " << len << " sampvals.length " << sampvals.size() << " sampcolidx.length " << sampcolidx.size() << " samprowidx.length " << samprowidx.size() << std::endl;
-		mkl_dcsrmv(&transb, &len, &gram_size, &alp, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], alpha, &zero, G+(s*b*s*b));
-		mkl_dcsrmv(&transb, &len, &gram_size, &alp, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], &y[0], &zero, G+(s*b*(s*b+1)));
+		mkl_dcsrmv(&transb, &len, &gram_size, &alp, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], alpha, &zero, G+(gram_size*gram_size));
+		mkl_dcsrmv(&transb, &len, &gram_size, &alp, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], &y[0], &zero, G+(gram_size*(gram_size+1)));
 		/*
 		for(int i = 0; i < s*b; ++i)
 			std::cout << *(G + (s*b*(s*b+1)) + i) << ' ';
@@ -210,11 +224,45 @@ void cabcd(	std::vector<int> &rowidx,
 		// Reduce and Broadcast: Sum partial Gram and partial residual components.
 		//std::cout << "Calling ALLREDUCE" << std::endl;
 		commst = MPI_Wtime();
-		MPI_Allreduce(G,recvG,s*b*(s*b+2), MPI_DOUBLE, MPI_SUM, comm);
+		MPI_Allreduce(G,recvG,gram_size*(gram_size+2), MPI_DOUBLE, MPI_SUM, comm);
 		commstp = MPI_Wtime();
 		commagg += commstp - commst;
 		//std::cout << "Adding lambda to diagonal" << std::endl;
 		innerst = MPI_Wtime();
+		std::memcpy(G, recvG, sizeof(double)*gram_size*(gram_size+2));
+		
+		/*Need to copy elements in G into correct position in recvG*/
+
+		int subidx, idx;
+		if(rank == 0)
+			std::cout << "starting copy of G" << std::endl;
+		for(int i = 0; i < gram_size; ++i){
+			subidx = unique_cols[i];
+			for(int j = 0; j < s*b; ++j){
+				idx = index[j];
+				if(subidx == idx){
+					//copy elements of alpha/y in G into alpha/y in recvG 
+					recvG[s*b*s*b + j] = G[gram_size*gram_size + i];
+					recvG[s*b*(s*b+1) + j] = G[gram_size*(gram_size+1) + i];
+					//copy row of G into row of recvG
+					for(int k = 0; k < gram_size; ++k){
+						for(int l = 0; l < s*b; ++l){
+							if(unique_cols[k] == index[l]){
+								recvG[s*b*l+j] = G[k*gram_size + i];
+								recvG[s*b*j + l] = recvG[s*b*l + j];
+							}
+						}
+					}
+				}
+			}
+		}
+		if(rank == 0){
+			std::cout << "finished copy of G" << std::endl;
+			for(int i = 0; i < s*b; ++i)
+				std::cout << recvG[i] << ' ';
+			std::cout << std::endl;
+		}
+		gram_size = s*b;
 		for(int i =0; i < s*b; ++i)
 				recvG[i + i*s*b] += lambda;
 		/*
@@ -521,7 +569,7 @@ int main (int argc, char* argv[])
 	for(int k = 0; k < 4; ++k){
 		if(b > n)
 			continue;
-		for(int j = 0; j < 7; ++j){
+		for(int j = 0; j < 9; ++j){
 			if(rank == 0){
 				std::cout << std::endl << std::endl;
 				std::cout << "s = " << s << ", " << "b = " << b << std::endl;
@@ -548,12 +596,14 @@ int main (int argc, char* argv[])
 		}
 		s = 1;
 		b *= 2;
+		/*
 		if(rank == 0){
 			std::cout << "w = ";
 			for(int i = 0; i < n; ++i)
 				std::cout << std::setprecision(4) << std::fixed << w[i] << " ";
 			std::cout << std::endl;
 		}
+		*/
 	}
 	/*
 	if(rank == 0){

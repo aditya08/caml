@@ -122,14 +122,12 @@ int main (int argc, char* argv[])
 		
 	if(rank == 0)
 		std::cout << std::endl << "Total CA-BCD time: " << (algstp - algst)/niter  << std::endl;
-	/*
 	if(rank == 0){
 		std::cout << "w = ";
 		for(int i = 0; i < n; ++i)
 			std::cout << w[i] << " ";
 		std::cout << std::endl;
 	}
-	*/
 
 	free(localX); free(y);
 	free(cnts); free(displs);

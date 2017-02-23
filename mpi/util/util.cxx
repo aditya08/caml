@@ -26,13 +26,13 @@ std::string libsvmread(const char* fname, int m, int n){
 	MPI_Offset fsize;
 	MPI_Offset start;
 
-	int localrdsize = 0;
-	int overlap = n*10;
+	long int localrdsize = 0;
+	long int overlap = n*10;
 	char *rdchars;
 
 	double tread = MPI_Wtime();
 	MPI_File in;
-	int ierr = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &in);
+	long int ierr = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_RDONLY, MPI_INFO_NULL, &in);
 	assert(!ierr);
 
 	MPI_File_get_size(in, &fsize);
@@ -49,9 +49,10 @@ std::string libsvmread(const char* fname, int m, int n){
 	//if(end > fsize - 1) end = fsize - 1;
 
 	localrdsize = end - start + 1;
-
+	//if(rank == 0)
+	//	std::cout << "localrdsize: " << localrdsize + 1  << " " << fsize << " " << start  << " "  << end << std::endl;
 	rdchars = Malloc(char,localrdsize+1);
-	memset(rdchars, sizeof(char), localrdsize+1);
+	memset(rdchars, 0, sizeof(char)*(localrdsize+1));
 //	std::cout << "start rank: " << rank << " " <<  start << " " << end << " " << localrdsize << std::endl;
 	
 	ierr = MPI_File_read_at_all(in, start, rdchars, localrdsize, MPI_CHAR, MPI_STATUS_IGNORE);
@@ -110,12 +111,6 @@ std::string libsvmread(const char* fname, int m, int n){
 		MPI_File_close(&out);
 	*/
 	return lines;
-
-	
-}
-
-int compare(const void *a, const void *b){
-	return ( *(int *)a - *(int *)b );
 }
 
 void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector<int> &colidx, std::vector<double> &vals, std::vector<double> &y){
@@ -132,7 +127,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &npes);
 	
-	//if(rank == 0) std::cout << "Starting parse..." << std::endl;
+	//std::cout << "Starting parse..." << std::endl;
 
 	double tparse = MPI_Wtime();
 
@@ -189,14 +184,29 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 	}
 	*/
 	nnz = (int)vals.size();
-	if(rank == npes - 1)
+	while(y.size() > rowidx.size() - 1)
 		y.pop_back();
+	
+
 	tparse = MPI_Wtime() - tparse;
 	double tmax;
 
 	MPI_Reduce(&tparse, &tmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 	if(rank == 0) std::cout << "Max parse time " << tmax*1e3 << " ms" << std::endl;
 
+	if(dual_method){
+		std::vector<double>  send_vals;
+		std::vector<int> send_colidx;
+		std::vector<int> send_rowidx;
+		std::vector<int> displ;
+		int ptr = 0;
+		while(ptr < rowidx.size()){
+			for(int i = rowidx[ptr]; (i < rowidx[ptr+1] && ptr < rowidx.size()); ++i;){
+				
+			}
+		ptr++;
+		}
+	}
 
 	double tstat = MPI_Wtime();
 
@@ -225,7 +235,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 			std::cout << nnz_cnts[i] << '\t';
 		std::cout << std::endl << std::endl;;
 		*/
-		qsort(nnz_cnts, npes, sizeof(int), compare);
+		qsort(nnz_cnts, npes, sizeof(int), compare_idx);
 		med = (npes % 2 == 0) ? ((nnz_cnts[(npes-1)/2] + nnz_cnts[(npes-1)/2 + 1])/2) : nnz_cnts[npes/2];
 	}
 
