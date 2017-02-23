@@ -200,31 +200,73 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		std::vector<double> send_vals;
 		std::vector<int> send_colidx;
 		std::vector<int> send_rowidx;
-		std::vector<int> displ;
-
-		//std::vector<int> pcols(npes, 0);
-		std::vector<int> offsets(npes, 0);
+		std::vector<int> send_cnts(npes, 0);
+		std::vector<int> send_displ(npes+1, 0);
+		std::vector<int> pcols(npes, 0);
+		std::vector<int> offsets(npes+ 1, 0);
 		size_t avg  = ncols/npes;
 		size_t rem = ncols % npes;
-		offsets[0] = avg+2;
+		offsets[0] = 1;
 
 		//compute (inclusive) prefix sum in offsets.
 
 		for (size_t i = 0; i < npes; i++){
 			if(i < rem){
-				//pcols[i] = avg + 1;
-				offsets[i+1] = offsets[i-1] + avg + 1;
+				pcols[i] = avg + 1;
+				offsets[i+1] = offsets[i] + avg + 1;
 			}
 			else{
-				//pcols[i] = avg;
-				offsets[i+1] = offsets[i-1] + avg;
+				pcols[i] = avg;
+				offsets[i+1] = offsets[i] + avg;
 			}
 		}
 
 		/*begin 1D-column partitioning by filling send_* buffers for each processor.
-			Loop through vals and colidx to fill send_* buffers according to offesets. 
+			Loop through vals and colidx to fill send_* buffers according to offesets.
 		Alltoallv appropriate here.
 		*/
+		double tmpcolidx;
+		for (size_t i = 0; i < pcols.size(); i++) {
+
+			for (size_t j = 0; j < colidx.size(); j++) {
+				tmpcolidx = colidx[j];
+				if(tmpcolidx >= pcols[i] && tmpcolidx < pcols[i+1]){
+					send_vals.push_back(vals[j]);
+					send_colidx.push_back(tmpcolidx[j]);
+					send_cnts[i]++;
+				}
+			}
+			send_displ[i+1] = send_cnts[i];
+		}
+
+		send_displ.pop_back();
+		std::vector<int> total_cnts(npes, 0);
+		MPI_Allreduce(&send_cnts, npes, MPI_INT, MPI_SUM, &total_cnts[0], MPI_COMM_WORLD);
+		std::vector<int> recv_displ(npes, 0);
+
+		for (size_t i = 1; i < npes; i++) {
+			recv_displ[i] = total_cnts[i-1] + recv_displ[i-1];
+		}
+		int nnz_recv = total_cnts.back() + recv_displ.back();
+		std::vector<double> recv_vals(nnz_recv, 0.);
+		std::vector<int> recv_cols(nnz_recv, 0.);
+		MPI_Alltoallv(&send_vals[0], &send_cnts[0], &send_displ[0], MPI_DOUBLE, &recv_vals[0], &total_cnts[0], &recv_displ[0], MPI_DOUBLE, MPI_COMM_WORLD);
+		MPI_Alltoallv(&send_cols[0], &send_cnts[0], &send_displ[0], MPI_INT, &recv_cols[0], &total_cnts[0], &recv_displ[0], MPI_INT, MPI_COMM_WORLD);
+
+		/*re-construct rowidx vector (ASSUMPTION: colidxs are in increasing order, so row_end/newrow_begin are easy to find.)
+		*/
+		int prevcol = recv_cols[0];
+		int curcol = 0, cnt_rownnz = 1;
+		std::vector<int> new_rowidx(1,1);
+
+		for (size_t i = 1; i < nnz_recv; i++; cnt_rownnz++; prevcol = curcol;) {
+			curcol = recv_cols[i];
+			if(prevcol >= curcol){
+				//at the start of a new row. so push current nnz count.
+				new_rowidx.push_back(cnt_rownnz);
+			}
+		}
+	}
 
 	double tstat = MPI_Wtime();
 
