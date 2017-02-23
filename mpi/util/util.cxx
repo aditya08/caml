@@ -45,7 +45,7 @@ std::string libsvmread(const char* fname, int m, int n){
 	if(rank == npes - 1) end = fsize;
 
 	if(rank != npes - 1) end += overlap;
-	
+
 	//if(end > fsize - 1) end = fsize - 1;
 
 	localrdsize = end - start + 1;
@@ -54,11 +54,11 @@ std::string libsvmread(const char* fname, int m, int n){
 	rdchars = Malloc(char,localrdsize+1);
 	memset(rdchars, 0, sizeof(char)*(localrdsize+1));
 //	std::cout << "start rank: " << rank << " " <<  start << " " << end << " " << localrdsize << std::endl;
-	
+
 	ierr = MPI_File_read_at_all(in, start, rdchars, localrdsize, MPI_CHAR, MPI_STATUS_IGNORE);
 	assert(!ierr);
 	MPI_File_close(&in);
-	
+
 	int lstart = 0, lend = localrdsize - 1;
 	if(rank != 0){
 		//if(rank == npes - 1)
@@ -76,7 +76,7 @@ std::string libsvmread(const char* fname, int m, int n){
 			lend++;
 	}
 
-	
+
 	//std::cout << rank  << " f " << start << " " << localrdsize << std::endl;
 	localrdsize = lend - lstart + 1;
 	//rdchars[localrdsize] = '\0';
@@ -86,7 +86,7 @@ std::string libsvmread(const char* fname, int m, int n){
 	tread = MPI_Wtime() - tread;
 	double tmax;
 	MPI_Reduce(&tread, &tmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-	
+
 	if(rank == 0)
 		std::cout << "Max read time: " << tmax*1e3 << " ms" << std::endl;
 
@@ -106,7 +106,7 @@ std::string libsvmread(const char* fname, int m, int n){
 	/*
 		MPI_File out;
 		ierr = MPI_File_open(MPI_COMM_WORLD, "out.txt", MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &out);
-		
+
 		MPI_File_write_at_all(out, (MPI_Offset)(start + (MPI_Offset)lstart), lines.c_str(), localrdsize, MPI_CHAR, MPI_STATUS_IGNORE);
 		MPI_File_close(&out);
 	*/
@@ -116,22 +116,22 @@ std::string libsvmread(const char* fname, int m, int n){
 void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector<int> &colidx, std::vector<double> &vals, std::vector<double> &y){
 	/* Parse file chunk into the dense vector y and local 3-array CSR matrices based.
 	 * Matrix is already in 1D-column layout (Good for primal method). Need to perform All_to_allv for 1D-row (good for dual method).
-	 * 
+	 *
 	 * Also, ensure that nnz per rank is roughly load-balanced.
 	 * Easiest to just construct CSRmatrices and compare length of vals vector.
-	 * 
+	 *
 	 * Load Balance if needed. Compare performance with/without LB.
 	 * */
 	int rank, npes;
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &npes);
-	
+
 	//std::cout << "Starting parse..." << std::endl;
 
 	double tparse = MPI_Wtime();
 
-	int nrows = 0, nnz = 0;
+	int nrows = 0, nnz = 0, ncols = 0, col = 0;
 	std::size_t curl = 0, curw = 0, curc = 0;
 	std::string line;
 	std::string word;
@@ -145,7 +145,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		//std::cout << lines<< std::endl;
 		lines.erase(0,curl + 1);
 		//std::cout << lines<< std::endl;
-		
+
 		while( line.length() != 0){
 			curw = (line.find(' ') != std::string::npos) ? (line.find(' ')) : line.length();
 			word = line.substr(0, curw);
@@ -158,6 +158,8 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 			}
 			else{
 				//parse to one-indexed, 3-array CSR matrix
+				col = atoi(tmp.c_str());
+				ncols = (col > ncols) ? col : ncols;
 				colidx.push_back(atoi(tmp.c_str()));
 				word.erase(0, curc + 1);
 				tmp = word.substr(0,word.length());
@@ -186,7 +188,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 	nnz = (int)vals.size();
 	while(y.size() > rowidx.size() - 1)
 		y.pop_back();
-	
+
 
 	tparse = MPI_Wtime() - tparse;
 	double tmax;
@@ -195,18 +197,34 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 	if(rank == 0) std::cout << "Max parse time " << tmax*1e3 << " ms" << std::endl;
 
 	if(dual_method){
-		std::vector<double>  send_vals;
+		std::vector<double> send_vals;
 		std::vector<int> send_colidx;
 		std::vector<int> send_rowidx;
 		std::vector<int> displ;
-		int ptr = 0;
-		while(ptr < rowidx.size()){
-			for(int i = rowidx[ptr]; (i < rowidx[ptr+1] && ptr < rowidx.size()); ++i;){
-				
+
+		//std::vector<int> pcols(npes, 0);
+		std::vector<int> offsets(npes, 0);
+		size_t avg  = ncols/npes;
+		size_t rem = ncols % npes;
+		offsets[0] = avg+2;
+
+		//compute (inclusive) prefix sum in offsets.
+
+		for (size_t i = 0; i < npes; i++){
+			if(i < rem){
+				//pcols[i] = avg + 1;
+				offsets[i+1] = offsets[i-1] + avg + 1;
 			}
-		ptr++;
+			else{
+				//pcols[i] = avg;
+				offsets[i+1] = offsets[i-1] + avg;
+			}
 		}
-	}
+
+		/*begin 1D-column partitioning by filling send_* buffers for each processor.
+			Loop through vals and colidx to fill send_* buffers according to offesets. 
+		Alltoallv appropriate here.
+		*/
 
 	double tstat = MPI_Wtime();
 
@@ -214,7 +232,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 	int *nnz_cnts = NULL;
 	if(rank == 0) nnz_cnts =  Malloc(int, npes);
 	MPI_Gather((void*)&nnz, 1, MPI_INT, (void*)nnz_cnts, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	
+
 	int sum, max, min, med;
 
 	if(rank == 0){
@@ -242,11 +260,11 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 	tstat = MPI_Wtime() - tstat;
 	MPI_Reduce(&tstat, &tmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 	if(rank == 0){
-	
+
 		std::cout << "Max stats time " << tstat*1e3 << " ms" << std::endl;
-		
+
 		std::cout << std::endl << std::endl;
-		
+
 		std::cout << "//*********************************//" << std::endl;
 		std::cout << "//\tMin NNZ: " << min  << std::endl;
 		std::cout << "//\tMax NNZ: " << max << " (Load Imbalance: " << std::setprecision(2) << std::fixed << (float)(max - (sum/npes))/(sum/npes)*100 << "%)" << std::endl;
@@ -264,7 +282,7 @@ void parse_lines_to_csc(){
 void staticLB_1d(int m, int n, int npes, int flag, int *cnts, int *displs, int *cnts2, int *displs2)
 {
 	int mm, nn;
-	
+
 	//1D-block row layout
 	if (flag){
 		mm = n;
