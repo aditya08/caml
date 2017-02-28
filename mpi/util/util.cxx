@@ -1,6 +1,8 @@
 #include <string>
 #include <string.h>
+#include <istream>
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <fstream>
 #include <stdio.h>
@@ -113,7 +115,7 @@ std::string libsvmread(const char* fname, int m, int n){
 	return lines;
 }
 
-void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector<int> &colidx, std::vector<double> &vals, std::vector<double> &y){
+void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector<int> &colidx, std::vector<double> &vals, std::vector<double> &y, int dual_method){
 	/* Parse file chunk into the dense vector y and local 3-array CSR matrices based.
 	 * Matrix is already in 1D-column layout (Good for primal method). Need to perform All_to_allv for 1D-row (good for dual method).
 	 *
@@ -139,57 +141,35 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 
 	rowidx.push_back(1);
 	//std::cout << "original " << lines << std::endl << std::endl;
-	while( lines.length() != 0){
-		curl = (lines.find('\n') != std::string::npos) ? (lines.find('\n')) : lines.length();
-		line = lines.substr(0,curl);
-		//std::cout << lines<< std::endl;
-		lines.erase(0,curl + 1);
-		//std::cout << lines<< std::endl;
-
-		while( line.length() != 0){
-			curw = (line.find(' ') != std::string::npos) ? (line.find(' ')) : line.length();
-			word = line.substr(0, curw);
-			curc = word.find(':');
-			tmp = word.substr(0,curc);
-			if(curc == std::string::npos){ // && tmp.length() != 0){
-				//std::cout << tmp  << " length = " << tmp.length() << ' ' << word << std::endl;
+	
+	std::stringstream strm_line(lines);
+	while(std::getline(strm_line, word, '\n') && !strm_line.eof()){
+		//std::cout << word << std::endl;
+		std::stringstream toks(word);
+		while(std::getline(toks, tmp, ' ') && !toks.eof()){
+			curl = tmp.find(':');
+			if(curl == std::string::npos){
 				y.push_back(atof(tmp.c_str()));
-				word.erase(0, curc + 1);
+				std::cout << atof(tmp.c_str()) << ' ';
 			}
 			else{
-				//parse to one-indexed, 3-array CSR matrix
-				col = atoi(tmp.c_str());
-				ncols = (col > ncols) ? col : ncols;
-				colidx.push_back(atoi(tmp.c_str()));
-				word.erase(0, curc + 1);
-				tmp = word.substr(0,word.length());
-				vals.push_back(atof(tmp.c_str()));
+				word = tmp.substr(0,curl);
+				colidx.push_back(atoi(word.c_str()));
+				ncols = (colidx.back() > ncols) ? colidx.back() : ncols;
+				word = tmp.substr(curl+1,tmp.length());
+				vals.push_back(atof(word.c_str()));
 				nnz++;
-				//std::cout << colidx.back() << ':' << vals.back() << ' ';
+				std::cout << tmp.substr(0,curl) << ':' << tmp.substr(curl+1, tmp.length()) << ' ';
 			}
-
-			line.erase(0,curw + 1);
 		}
-		//std::cout << std::endl;
-		if(nnz > 0){
-			rowidx.push_back(nnz + rowidx[nrows]);
-			nnz = 0;
-			nrows++;
-		}
-	}
-	/*
-	if(rank == 0){
-		std::cout << "rowidx" << std::endl;
-		for(int i = 0; i < rowidx.size(); ++i)
-			std::cout << rowidx[i] << ' ';
+		rowidx.push_back(nnz + rowidx[nrows]);
+		nnz = 0;
+		nrows++;
 		std::cout << std::endl;
 	}
-	*/
+	std::cout << "nnz = " << rowidx.back() << std::endl;
+
 	nnz = (int)vals.size();
-	while(y.size() > rowidx.size() - 1)
-		y.pop_back();
-
-
 	tparse = MPI_Wtime() - tparse;
 	double tmax;
 
@@ -209,7 +189,8 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		offsets[0] = 1;
 
 		//compute (inclusive) prefix sum in offsets.
-
+		if(rank == 0)
+		std::cout << "Offsets ";
 		for (size_t i = 0; i < npes; i++){
 			if(i < rem){
 				pcols[i] = avg + 1;
@@ -219,39 +200,51 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 				pcols[i] = avg;
 				offsets[i+1] = offsets[i] + avg;
 			}
+
+		if(rank == 0)
+			std::cout << offsets[i+1] << ' ';
 		}
+		if(rank == 0)
+		std::cout << std::endl;
 
 		/*begin 1D-column partitioning by filling send_* buffers for each processor.
 			Loop through vals and colidx to fill send_* buffers according to offesets.
 		Alltoallv appropriate here.
 		*/
 		double tmpcolidx;
-		for (size_t i = 0; i < pcols.size(); i++) {
-
+		for (size_t i = 0; i < npes; i++) {
 			for (size_t j = 0; j < colidx.size(); j++) {
 				tmpcolidx = colidx[j];
-				if(tmpcolidx >= pcols[i] && tmpcolidx < pcols[i+1]){
+				if(tmpcolidx >= offsets[i] && tmpcolidx < offsets[i+1]){
 					send_vals.push_back(vals[j]);
-					send_colidx.push_back(tmpcolidx[j]);
+					send_colidx.push_back(colidx[j]);
 					send_cnts[i]++;
 				}
 			}
 			send_displ[i+1] = send_cnts[i];
+			if(rank == 0)
+				std::cout << send_cnts[i] << ' ';
 		}
+		if(rank == 0)
+		std::cout << std::endl;
+
 
 		send_displ.pop_back();
 		std::vector<int> total_cnts(npes, 0);
-		MPI_Allreduce(&send_cnts, npes, MPI_INT, MPI_SUM, &total_cnts[0], MPI_COMM_WORLD);
+		//Call MPI_Alltoall to get partial send cnts to get recv displs.
+		
+		//MPI_Allreduce(&send_cnts[0], &total_cnts[0], npes, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 		std::vector<int> recv_displ(npes, 0);
-
+		if(rank == 0)
+		std::cout << "send_cnts[rank] "<<  send_cnts[rank] << std::endl;
 		for (size_t i = 1; i < npes; i++) {
 			recv_displ[i] = total_cnts[i-1] + recv_displ[i-1];
 		}
-		int nnz_recv = total_cnts.back() + recv_displ.back();
-		std::vector<double> recv_vals(nnz_recv, 0.);
-		std::vector<int> recv_cols(nnz_recv, 0.);
+		std::cout << "recv_cnts[" << rank << "] "<<  total_cnts[rank] << " recv_displ"<< std::endl;
+		std::vector<double> recv_vals(total_cnts[rank], 0.);
+		std::vector<int> recv_cols(total_cnts[rank], 0.);
 		MPI_Alltoallv(&send_vals[0], &send_cnts[0], &send_displ[0], MPI_DOUBLE, &recv_vals[0], &total_cnts[0], &recv_displ[0], MPI_DOUBLE, MPI_COMM_WORLD);
-		MPI_Alltoallv(&send_cols[0], &send_cnts[0], &send_displ[0], MPI_INT, &recv_cols[0], &total_cnts[0], &recv_displ[0], MPI_INT, MPI_COMM_WORLD);
+		MPI_Alltoallv(&send_colidx[0], &send_cnts[0], &send_displ[0], MPI_INT, &recv_cols[0], &total_cnts[0], &recv_displ[0], MPI_INT, MPI_COMM_WORLD);
 
 		/*re-construct rowidx vector (ASSUMPTION: colidxs are in increasing order, so row_end/newrow_begin are easy to find.)
 		*/
@@ -259,7 +252,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		int curcol = 0, cnt_rownnz = 1;
 		std::vector<int> new_rowidx(1,1);
 
-		for (size_t i = 1; i < nnz_recv; i++; cnt_rownnz++; prevcol = curcol;) {
+		for (size_t i = 1; i < total_cnts[rank]; i++, cnt_rownnz++, prevcol = curcol) {
 			curcol = recv_cols[i];
 			if(prevcol >= curcol){
 				//at the start of a new row. so push current nnz count.
@@ -314,43 +307,5 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		std::cout << "//\tAvg NNZ: " << (float)sum/npes << std::endl;
 		std::cout << "//*********************************//" << std::endl;
 		std::cout << std::endl << std::endl;
-	}
-}
-
-void parse_lines_to_csc(){
-
-}
-
-void staticLB_1d(int m, int n, int npes, int flag, int *cnts, int *displs, int *cnts2, int *displs2)
-{
-	int mm, nn;
-
-	//1D-block row layout
-	if (flag){
-		mm = n;
-		nn = m;
-	}
-	//1D-block column layout
-	else{
-		mm = m;
-		nn = n;
-	}
-
-	for (int i = 0; i < mm%npes; ++i)
-	{
-		cnts[i] = ((mm/npes) + 1)*nn;
-		cnts2[i] = ((mm/npes) + 1);
-		displs[i] = (i*(mm/npes + 1))*nn;
-		displs2[i] = (i*(mm/npes + 1));
-		//std::cout << cnts[i] << std::endl;
-	}
-
-	for (int i = mm%npes; i < npes; ++i)
-	{
-		cnts[i] = (mm/npes)*nn;
-		cnts2[i] = mm/npes;
-		displs[i] = (((mm%npes)*(mm/npes + 1)) + ((i - mm%npes)*(mm/npes)))*nn;
-		displs2[i] = (((mm%npes)*(mm/npes + 1)) + ((i - mm%npes)*(mm/npes)));
-		//std::cout << displs2[i] << std::endl;
 	}
 }
