@@ -145,12 +145,13 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 	std::stringstream strm_line(lines);
 	while(std::getline(strm_line, word, '\n') && !strm_line.eof()){
 		//std::cout << word << std::endl;
+		word += ' ';
 		std::stringstream toks(word);
 		while(std::getline(toks, tmp, ' ') && !toks.eof()){
 			curl = tmp.find(':');
 			if(curl == std::string::npos){
 				y.push_back(atof(tmp.c_str()));
-				std::cout << atof(tmp.c_str()) << ' ';
+				//std::cout << atof(tmp.c_str()) << ' ';
 			}
 			else{
 				word = tmp.substr(0,curl);
@@ -159,23 +160,17 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 				word = tmp.substr(curl+1,tmp.length());
 				vals.push_back(atof(word.c_str()));
 				nnz++;
-				std::cout << tmp.substr(0,curl) << ':' << tmp.substr(curl+1, tmp.length()) << ' ';
+				//std::cout << tmp.substr(0,curl) << ':' << tmp.substr(curl+1, tmp.length()) << ' ';
 			}
 		}
 		rowidx.push_back(nnz + rowidx[nrows]);
 		nnz = 0;
 		nrows++;
-		std::cout << std::endl;
+		//std::cout << std::endl;
 	}
-	std::cout << "nnz = " << rowidx.back() << std::endl;
+	//std::cout << "nnz = " << rowidx.back() << std::endl;
 
 	nnz = (int)vals.size();
-	tparse = MPI_Wtime() - tparse;
-	double tmax;
-
-	MPI_Reduce(&tparse, &tmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-	if(rank == 0) std::cout << "Max parse time " << tmax*1e3 << " ms" << std::endl;
-
 	if(dual_method){
 		std::vector<double> send_vals;
 		std::vector<int> send_colidx;
@@ -187,10 +182,13 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		size_t avg  = ncols/npes;
 		size_t rem = ncols % npes;
 		offsets[0] = 1;
+		
+		///if(rank == 0)
+		//	std::cout << "Avg = " << avg << " rem = " << rem << std::endl;
 
 		//compute (inclusive) prefix sum in offsets.
-		if(rank == 0)
-		std::cout << "Offsets ";
+		//if(rank == 0)
+		//std::cout << "Offsets ";
 		for (size_t i = 0; i < npes; i++){
 			if(i < rem){
 				pcols[i] = avg + 1;
@@ -201,17 +199,17 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 				offsets[i+1] = offsets[i] + avg;
 			}
 
-		if(rank == 0)
-			std::cout << offsets[i+1] << ' ';
+			//if(rank == 0)
+			//	std::cout << offsets[i] << ' ';
 		}
-		if(rank == 0)
-		std::cout << std::endl;
+		//if(rank == 0)
+		//std::cout << offsets.back() << std::endl;
 
 		/*begin 1D-column partitioning by filling send_* buffers for each processor.
 			Loop through vals and colidx to fill send_* buffers according to offesets.
 		Alltoallv appropriate here.
 		*/
-		double tmpcolidx;
+		int tmpcolidx;
 		for (size_t i = 0; i < npes; i++) {
 			for (size_t j = 0; j < colidx.size(); j++) {
 				tmpcolidx = colidx[j];
@@ -221,45 +219,98 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 					send_cnts[i]++;
 				}
 			}
-			send_displ[i+1] = send_cnts[i];
-			if(rank == 0)
-				std::cout << send_cnts[i] << ' ';
+			send_displ[i+1] = send_cnts[i] + send_displ[i];
+			//	std::cout << "rank " << rank << " send_cnts[" << i << "] " << send_cnts[i] << " send_displ[" << i << "] = " << send_displ[i];
 		}
-		if(rank == 0)
-		std::cout << std::endl;
+		//std::cout << std::endl;
 
 
 		send_displ.pop_back();
 		std::vector<int> total_cnts(npes, 0);
 		//Call MPI_Alltoall to get partial send cnts to get recv displs.
 		
+		MPI_Alltoall(&send_cnts[0], 1, MPI_INT, &total_cnts[0], 1, MPI_INT, MPI_COMM_WORLD);
+		
+		//for(int i = 0; i < npes; ++i)
+		//	std::cout << "rank " << rank << " recv_cnts[" << i << "] = " << total_cnts[i];
+		//std::cout << std::endl;
+
 		//MPI_Allreduce(&send_cnts[0], &total_cnts[0], npes, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 		std::vector<int> recv_displ(npes, 0);
-		if(rank == 0)
-		std::cout << "send_cnts[rank] "<<  send_cnts[rank] << std::endl;
+		int total = total_cnts[0];
 		for (size_t i = 1; i < npes; i++) {
 			recv_displ[i] = total_cnts[i-1] + recv_displ[i-1];
+			total += total_cnts[i];
 		}
-		std::cout << "recv_cnts[" << rank << "] "<<  total_cnts[rank] << " recv_displ"<< std::endl;
-		std::vector<double> recv_vals(total_cnts[rank], 0.);
-		std::vector<int> recv_cols(total_cnts[rank], 0.);
+		std::vector<double> recv_vals(total, 0.);
+		std::vector<int> recv_cols(total, 0.);
 		MPI_Alltoallv(&send_vals[0], &send_cnts[0], &send_displ[0], MPI_DOUBLE, &recv_vals[0], &total_cnts[0], &recv_displ[0], MPI_DOUBLE, MPI_COMM_WORLD);
 		MPI_Alltoallv(&send_colidx[0], &send_cnts[0], &send_displ[0], MPI_INT, &recv_cols[0], &total_cnts[0], &recv_displ[0], MPI_INT, MPI_COMM_WORLD);
 
 		/*re-construct rowidx vector (ASSUMPTION: colidxs are in increasing order, so row_end/newrow_begin are easy to find.)
 		*/
 		int prevcol = recv_cols[0];
-		int curcol = 0, cnt_rownnz = 1;
+		int curcol = 0, cnt_rownnz = 2;
 		std::vector<int> new_rowidx(1,1);
 
-		for (size_t i = 1; i < total_cnts[rank]; i++, cnt_rownnz++, prevcol = curcol) {
+		//for(int i = 0; i < total; ++i)
+		//	std::cout << recv_cols[i] << ':' << recv_vals[i] << ' ';
+		//std::cout << std::endl;
+
+		for (size_t i = 1; i < recv_cols.size(); i++) {
 			curcol = recv_cols[i];
 			if(prevcol >= curcol){
 				//at the start of a new row. so push current nnz count.
 				new_rowidx.push_back(cnt_rownnz);
 			}
+			prevcol = curcol;
+			cnt_rownnz++;
 		}
+		new_rowidx.push_back(cnt_rownnz);
+		//std::cout << " rank = " << rank << ' ';
+		//for(int i = 0; i < new_rowidx.size(); ++i){
+		//	std::cout << new_rowidx[i] << ' ';
+		//}
+		//std::cout << std::endl;
+		nnz = new_rowidx.back() - 1;
+
+		//Matrix is now in 1D-col layout, just need to Allgather the labels vector, y.
+		std::vector<int> ylen_comm(npes, 0);
+		std::vector<int> ydispl(npes, 0);
+		int sendlen = y.size();
+		MPI_Allgather(&sendlen, 1, MPI_INT, &ylen_comm[0], 1, MPI_INT, MPI_COMM_WORLD);
+		
+		nrows = ylen_comm[0];
+		//if(rank == 0)
+		//	std::cout << "ydispl " << ydispl[0];
+		for(int i = 1; i < npes; ++i){
+			ydispl[i] = ylen_comm[i-1] + ydispl[i-1];
+			nrows += ylen_comm[i];
+		//	if(rank == 0)
+		//	std::cout << " " << ydispl[i];
+		}
+		//if(rank == 0)
+		//	std::cout << std::endl;
+
+
+		std::vector<double> new_y(nrows, 0.);
+		MPI_Allgatherv(&y[0], sendlen, MPI_DOUBLE, &new_y[0], &ylen_comm[0], &ydispl[0], MPI_DOUBLE, MPI_COMM_WORLD);
+		
+
+		//Need to copy recv_vals, _cols, new_rowidx and new_y into the input std::vectors rowidx, colidx, vals, and y.
+		rowidx = new_rowidx;
+		colidx = recv_cols;
+		vals = recv_vals;
+		y = new_y;
+		new_rowidx.clear(); recv_cols.clear(); recv_vals.clear(); new_y.clear();
 	}
+
+	tparse = MPI_Wtime() - tparse;
+	double tmax;
+
+	MPI_Reduce(&tparse, &tmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+	if(rank == 0) std::cout << "Max parse time " << tmax*1e3 << " ms" << std::endl;
+
 
 	double tstat = MPI_Wtime();
 
