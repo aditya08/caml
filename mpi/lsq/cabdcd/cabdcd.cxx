@@ -11,21 +11,21 @@
 #include "util.h"
 
 void cabdcd(	std::vector<int> &rowidx,
-					std::vector<int> &colidx,
-					std::vector<double> &vals,
-					int m,
-					int n,
-					std::vector<double> &y,
-					int len,
-					double lambda,
-					int s,
-					int b,
-					int maxit,
-					double tol,
-					int seed,
-					int freq,
-					double *w,
-					MPI_Comm comm);
+							std::vector<int> &colidx,
+							std::vector<double> &vals,
+							int m,
+							int n,
+							std::vector<double> &y,
+							int len,
+							double lambda,
+							int s,
+							int b,
+							int maxit,
+							double tol,
+							int seed,
+							int freq,
+							double *w,
+							MPI_Comm comm);
 {
 	int npes, rank;
 	MPI_Comm_size(comm, &npes);
@@ -52,7 +52,7 @@ void cabdcd(	std::vector<int> &rowidx,
 	assert(0==Malloc_aligned(double, ysamp, s*b, ALIGN));
 	assert(0==Malloc_aligned(int, index, s*b, ALIGN));
 
-	
+
 	//std::cout << "Initialized alpha and w to 0" << std::endl;
 	memset(alpha, 0, sizeof(double)*n);
 	memset(w, 0, sizeof(double)*len);
@@ -65,6 +65,9 @@ void cabdcd(	std::vector<int> &rowidx,
 	int info, nrhs = 1;
 	int lGcols = b;
 
+	char matdesc[6];
+	matdesc[0] = 'G'; matdesc[3] = 'F';
+
 	srand48(seed);
 
 	double commst, commstp, commagg = 0.;
@@ -72,11 +75,17 @@ void cabdcd(	std::vector<int> &rowidx,
 	double innerst, innerstp, inneragg = 0.;
 	int iter = 0;
 	int offset = 0;
-	
+
 	int cursamp, count;
+	std::vector<int> samprowidx(rowidx.size(), 1);
+	std::vector<int> sampcolidx;
+	std::vector<double> sampvals;
+	int cidx = 0, rnnz = 0;
+	double tval = 0.;
 	//std::cout << "local cols = " << len << std::endl;
 	while(1){
 		gramst = MPI_Wtime();
+
 		for(int i = 0; i < s; ++i){
 			cursamp = 0;
 			count = 0;
@@ -91,12 +100,30 @@ void cabdcd(	std::vector<int> &rowidx,
 			}
 		}
 
+		for(int i = 1; i < rowidx.size(); ++i){
+			samprowidx[i] = samprowidx[i-1];
+			//std::cout << samprowidx.size()<< std::endl;
+			for(int k = 0; k < gram_size; ++k){
+				for(int j = rowidx[i-1]-1; j < rowidx[i]-1; ++j){
+					cidx = colidx[j];
+					tval = vals[j];
+					if(cidx == index[k]+1){
+						//std::cout << "currently i = " << i << std::endl;
+						sampcolidx.push_back(k+1);
+						sampvals.push_back(tval);
+						//std::cout << "Incrementing samprowidx[" << i << "] to " << samprowidx[i] + 1 << std::endl;
+						samprowidx[i]++;
+					}
+				}
+			}
+		}
+
 		//std::cout << "ysamp = ";
 		for(int i = 0; i < s*b; ++i){
 			//TODO: need to sample without replacement
 			//if(rank ==0)
 			//	std::cout << "index = " << index[i] << std::endl;
-			dcopy(&len, X + index[i], &n, Xsamp + i, &gram_size);
+			//dcopy(&len, X + index[i], &n, Xsamp + i, &gram_size);
 			ysamp[i] = y[index[i]];
 			//std::cout << ysamp[i] << " ";
 			asamp[i] = alpha[index[i]];
@@ -105,19 +132,23 @@ void cabdcd(	std::vector<int> &rowidx,
 
 		//for(int i =0; i < s*b*len; ++i)
 		//	std::cout << "Xsamp[ " << i << "] = " << Xsamp[i] << std::endl;
-		//std::cout << "Xsamp[0] = " << Xsamp[0] << " Xsamp[1] = " << Xsamp[1] << std::endl;  
+		//std::cout << "Xsamp[0] = " << Xsamp[0] << " Xsamp[1] = " << Xsamp[1] << std::endl;
 		// Compute (s*b) x (s*b) Gram matrix
-		
+
 		//std::cout << "Calling DGEMM, lambda = " << lambda << " maxit = " << maxit  << " s = " << s << std::endl;
-		
-		dgemm(&transa, &transb, &gram_size, &gram_size, &len, &alp, Xsamp, &gram_size, Xsamp, &gram_size, &zero, G, &gram_size); 
+
+		//dgemm(&transa, &transb, &gram_size, &gram_size, &len, &alp, Xsamp, &gram_size, Xsamp, &gram_size, &zero, G, &gram_size);
 		//std::cout << "dot product" << (1./n)*ddot(&len, Xsamp + 0, &gram_size, Xsamp + 1, &gram_size)+lambda << std::endl;
 
+		mkl_dcsrmultd(&transb, &len, &gram_size, &gram_size, &sampvals[0], &sampcolidx[0], &samprowidx[0],  &sampvals[0], &sampcolidx[0], &samprowidx[0], G, &gram_size);
+		dscal(&ngram, &alp, G, &incx);
 
 
 		// Compute y and alpha components of residual based on sampled rows.
 		//std::cout << "Calling DGEMV" << std::endl;
-		dgemv(&transa, &gram_size, &len, &bet, Xsamp, &gram_size, w, &incx, &zero, G + (s*b*s*b), &incx);
+		mkl_dcsrmv(&transb, &len, &gram_size, &bet, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], w, &zero, G+(s*b*s*b));
+
+		//dgemv(&transa, &gram_size, &len, &bet, Xsamp, &gram_size, w, &incx, &zero, G + (s*b*s*b), &incx);
 		//dgemv(&transa, &gram_size, &n, &alp, Xsamp, &gram_size, y, &incx, &zero, G + (s*b*(s*b+1)), &incx);
 		gramstp = MPI_Wtime();
 		gramagg += gramstp - gramst;
@@ -132,7 +163,7 @@ void cabdcd(	std::vector<int> &rowidx,
 		innerst = MPI_Wtime();
 		for(int i =0; i < s*b; ++i)
 				recvG[i + i*s*b] += 1./n;
-		
+
 		/*
 		if(rank == 0){
 			for(int i = 0; i < s*b; ++i){
@@ -160,14 +191,14 @@ void cabdcd(	std::vector<int> &rowidx,
 		 * Inner s-step loop
 		 * Perfomed redundantly on all processors
 		*/
-		
+
 		//combine residual updates into one vector
 
 		daxpy(&gram_size, &gam, asamp, &incx, recvG + s*b*s*b, &incx);
 		daxpy(&gram_size, &gam, ysamp, &incx, recvG + s*b*(s*b), &incx);
-		
+
 		dcopy(&gram_size, recvG + s*b*(s*b), &incx, del_a, &incx);
-		
+
 		/*
 		if(rank == 0){
 			std::cout << "residual on rank " << rank << " iter " << iter << std::endl;
@@ -180,7 +211,7 @@ void cabdcd(	std::vector<int> &rowidx,
 		*/
 
 		//compute solution to first (b) x (b) subproblem
-		
+
 		/*
 		std::cout << "recvG[0] = " << recvG[0] << std::endl;
 		std::cout << "before del_a = ";
@@ -192,13 +223,13 @@ void cabdcd(	std::vector<int> &rowidx,
 
 		dpotrf(&uplo, &b, recvG, &gram_size, &info);
 		assert(0==info);
-		
+
 		dpotrs(&uplo, &b, &nrhs, recvG, &gram_size, del_a, &b, &info);
 		assert(0==info);
 		for(int i = 0; i < b; ++i)
 			alpha[index[i]] = alpha[index[i]] - del_a[i];
 		iter++;
-	
+
 		/*
 		if(rank == 0){
 			std::cout << "del_a = ";
@@ -207,7 +238,7 @@ void cabdcd(	std::vector<int> &rowidx,
 			std::cout << std::endl;
 		}
 		*/
-		//std::cout << "del_a = " << del_a[0] << std::endl; 
+		//std::cout << "del_a = " << del_a[0] << std::endl;
 		innerstp = MPI_Wtime();
 		inneragg += innerstp - innerst;
 
@@ -230,7 +261,7 @@ void cabdcd(	std::vector<int> &rowidx,
 			return;
 		}
 		//std::cout << "Iter count: " << iter << std::endl;
-		//std::cout << "del_a before = " << del_a[iter] << std::endl; 
+		//std::cout << "del_a before = " << del_a[iter] << std::endl;
 		/*
 		if(rank == 0){
 			std::cout << "del_a before = ";
@@ -241,12 +272,12 @@ void cabdcd(	std::vector<int> &rowidx,
 		*/
 
 		for(int i = 1; i < s; ++i){
-			
+
 			// Compute residual based on previous subproblem solution
 			innerst = MPI_Wtime();
 			lGcols = i*b;
 			dgemv(&transa, &b, &lGcols, &neg, recvG + i*b, &gram_size, del_a, &incx, &one, del_a + i*b, &incx);
-			
+
 			// Correct residual if any sampled row in current block appeared in any previous blocks
 			for(int j = 0; j < i*b; ++j){
 				for(int k = 0; k < b; ++k){
@@ -262,7 +293,7 @@ void cabdcd(	std::vector<int> &rowidx,
 
 			dpotrs(&uplo, &b, &nrhs, recvG + lGcols + s*b*lGcols, &gram_size, del_a + lGcols, &b, &info);
 			assert(0==info);
-			
+
 			for(int j = 0; j < b; ++j)
 				alpha[index[i*b + j]] = alpha[index[i*b + j]] - del_a[i*b + j];
 			/*
@@ -273,7 +304,7 @@ void cabdcd(	std::vector<int> &rowidx,
 				std::cout << std::endl;
 			}
 			*/
-			//std::cout << "del_a = " << del_a[i] << std::endl; 
+			//std::cout << "del_a = " << del_a[i] << std::endl;
 			iter++;
 			inneragg += MPI_Wtime() - innerst;
 			if(iter == maxit){
@@ -308,12 +339,13 @@ void cabdcd(	std::vector<int> &rowidx,
 		//std::cout << "w = ";
 		//	std::cout << w[index[j]] << " ";
 		//std::cout << std::endl;
-		
+
 
 		// Update local alpha
 		gramst = MPI_Wtime();
-		dgemv(&transb, &gram_size, &len, &rho, Xsamp, &gram_size, del_a, &incx, &one, w, &incx);
-		
+		//dgemv(&transb, &gram_size, &len, &rho, Xsamp, &gram_size, del_a, &incx, &one, w, &incx);
+		mkl_dcsrmv(&transa, &len, &gram_size, &rho, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], del_a, &one, w);
+
 		memset(G, 0, sizeof(double)*gram_size*(gram_size+2));
 		memset(recvG, 0, sizeof(double)*gram_size*(gram_size+2));
 		memset(del_a, 0, sizeof(double)*gram_size);
@@ -321,10 +353,10 @@ void cabdcd(	std::vector<int> &rowidx,
 		/*
 		 * End Inner s-step loop
 		*/
-		
+
 	}
 
-	
+
 }
 
 //sampling tuning choices: randomly permute data matrix during I/O. after I/O. randomly select a column at a time.
@@ -335,7 +367,7 @@ int main (int argc, char* argv[])
 	int m, n;
 	char *fname;
 
-	
+
 	double lambda, tol;
 	int maxit, seed, freq, s, b;
 
@@ -368,7 +400,7 @@ int main (int argc, char* argv[])
 	s = atoi(argv[10]);
 	int niter = atoi(argv[11]);
 
-	
+
 	std::string lines = libsvmread(fname, m, n);
 
 	std::vector<int> rowidx, colidx;
@@ -399,11 +431,11 @@ int main (int argc, char* argv[])
 
 	if(rank == 0)
 		std::cout << "Calling CA-BDCD with " << n <<  "-by-" << m << " matrix X and s = " << s << std::endl;
-	cabdcd(rowidx, colidx, vals, m, n, y, y.size(), lambda, s, b, maxit, tol, seed, freq, w, comm);
+	cabdcd(rowidx, colidx, vals, m, n, y, ncols, lambda, s, b, maxit, tol, seed, freq, w, comm);
 	algst = MPI_Wtime();
 	for(int i = 0; i < niter; ++i){
-		cabdcd(localX, n, m, y, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
-		
+		cabdcd(rowidx, colidx, vals, m, n, y, ncols, lambda, s, b, maxit, tol, seed, freq, w, comm);
+
 		/*
 		if(rank == 0){
 			std::cout << "w = ";
@@ -414,7 +446,7 @@ int main (int argc, char* argv[])
 		*/
 	}
 	algstp = MPI_Wtime();
-		
+
 	if(rank == 0){
 		std::cout << std::endl << "Total CA-BDCD time: " << (algstp - algst)/niter  << std::endl;
 		free(X); free(y);
@@ -432,7 +464,7 @@ int main (int argc, char* argv[])
 	free(localX); free(w);
 	free(cnts); free(displs);
 	free(cnts2); free(displs2);
-	
+
 	MPI_Finalize();
 	return 0;
 }

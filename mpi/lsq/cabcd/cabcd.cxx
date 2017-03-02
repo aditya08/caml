@@ -11,21 +11,21 @@
 #include "util.h"
 
 void cabcd(	std::vector<int> &rowidx,
-			std::vector<int> &colidx,
-			std::vector<double> &vals,	//input args
-			int m,
-			int n,
-			std::vector<double> &y,
-			int len,
-			double lambda,
-			int s,
-			int b,
-			int maxit,
-			double tol,
-			int seed,
-			int freq,
-			double *w,
-			MPI_Comm comm)	//output arg: allocated in function.
+						std::vector<int> &colidx,
+						std::vector<double> &vals,	//input args
+						int m,
+						int n,
+						std::vector<double> &y,
+						int len,
+						double lambda,
+						int s,
+						int b,
+						int maxit,
+						double tol,
+						int seed,
+						int freq,
+						double *w,
+						MPI_Comm comm)	//output arg: allocated in function.
 {
 	int npes, rank;
 	MPI_Comm_size(comm, &npes);
@@ -79,13 +79,13 @@ void cabcd(	std::vector<int> &rowidx,
 	double innerst, innerstp, inneragg = 0.;
 	int iter = 0;
 	int offset = 0;
-	
+
 	int convcnt = 0;
 	int conviter = 0;
 	int convthresh = (n%b == 0) ? n/b : n/b + 1;
 
 	int cursamp, count;
-	std::vector<int> samprowidx(rowidx.size(), 1); 
+	std::vector<int> samprowidx(rowidx.size(), 1);
 	std::vector<int> sampcolidx;
 	std::vector<double> sampvals;
 	int cidx = 0, rnnz = 0;
@@ -180,18 +180,18 @@ void cabcd(	std::vector<int> &rowidx,
 		}
 
 
-		//std::cout << "Xsamp[0] = " << Xsamp[0] << " Xsamp[1] = " << Xsamp[1] << std::endl;  
+		//std::cout << "Xsamp[0] = " << Xsamp[0] << " Xsamp[1] = " << Xsamp[1] << std::endl;
 		// Compute (s*b) x (s*b) Gram matrix
-		
-		
-		//dgemm(&transa, &transb, &gram_size, &gram_size, &len, &alp, Xsamp, &gram_size, Xsamp, &gram_size, &zero, G, &gram_size); 
+
+
+		//dgemm(&transa, &transb, &gram_size, &gram_size, &len, &alp, Xsamp, &gram_size, Xsamp, &gram_size, &zero, G, &gram_size);
 		//std::cout << "dot product" << (1./n)*ddot(&len, Xsamp + 0, &gram_size, Xsamp + 1, &gram_size)+lambda << std::endl;
 
 
 
 		// Compute y and alpha components of residual based on sampled rows.
 		//std::cout << "Calling DGEMV" << std::endl;
-		
+
 		//std::cout << "len: " << len << " sampvals.length " << sampvals.size() << " sampcolidx.length " << sampcolidx.size() << " samprowidx.length " << samprowidx.size() << std::endl;
 		mkl_dcsrmv(&transb, &len, &gram_size, &alp, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], alpha, &zero, G+(s*b*s*b));
 		mkl_dcsrmv(&transb, &len, &gram_size, &alp, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], &y[0], &zero, G+(s*b*(s*b+1)));
@@ -245,13 +245,13 @@ void cabcd(	std::vector<int> &rowidx,
 		 * Inner s-step loop
 		 * Perfomed redundantly on all processors
 		*/
-		
+
 		//combine residual updates into one vector
 
 		//std::cout << "length 99" << std::endl;
 		daxpy(&gram_size, &lambda, wsamp, &incx, recvG + s*b*s*b, &incx);
 		daxpy(&gram_size, &neg, recvG + s*b*s*b, &incx, recvG + s*b*(s*b+1), &incx);
-		
+
 		dcopy(&gram_size, recvG + s*b*(s*b+1), &incx, del_w, &incx);
 		/*
 		std::cout << "residual on rank " << rank << " iter " << iter << std::endl;
@@ -264,7 +264,7 @@ void cabcd(	std::vector<int> &rowidx,
 
 
 		//compute solution to first (b) x (b) subproblem
-		
+
 		/*
 		std::cout << "recvG[0] = " << recvG[0] << std::endl;
 		std::cout << "before del_w = ";
@@ -276,7 +276,7 @@ void cabcd(	std::vector<int> &rowidx,
 
 		dpotrf(&uplo, &b, recvG, &gram_size, &info);
 		assert(0==info);
-		
+
 		dpotrs(&uplo, &b, &nrhs, recvG, &gram_size, del_w, &b, &info);
 		assert(0==info);
 		for(int i = 0; i < b; ++i)
@@ -309,12 +309,12 @@ void cabcd(	std::vector<int> &rowidx,
 		//std::cout << "Iter count: " << iter << std::endl;
 
 		for(int i = 1; i < s; ++i){
-			
+
 			// Compute residual based on previous subproblem solution
 			innerst = MPI_Wtime();
 			lGcols = i*b;
 			dgemv(&transa, &b, &lGcols, &neg, recvG + i*b, &gram_size, del_w, &incx, &one, del_w + i*b, &incx);
-			
+
 			// Correct residual if any sampled row in current block appeared in any previous blocks
 			for(int j = 0; j < i*b; ++j){
 				for(int k = 0; k < b; ++k){
@@ -330,7 +330,7 @@ void cabcd(	std::vector<int> &rowidx,
 
 			dpotrs(&uplo, &b, &nrhs, recvG + lGcols + s*b*lGcols, &gram_size, del_w + lGcols, &b, &info);
 			assert(0==info);
-			
+
 			for(int j = 0; j < b; ++j)
 				w[index[i*b + j]] = w[index[i*b + j]] + del_w[i*b + j];
 			iter++;
@@ -358,7 +358,7 @@ void cabcd(	std::vector<int> &rowidx,
 			}
 			//std::cout << "Iter count: " << iter << std::endl;
 		}
-		
+
 		//std::cout << "length 100" << std::endl;
 		for(int i = 0; i < gram_size; ++i)
 			sampres[index[i]] = recvG[gram_size*(gram_size+1) + i];
@@ -385,7 +385,7 @@ void cabcd(	std::vector<int> &rowidx,
 				//	convcnt = 0; conviter = iter;
 				//}
 		}
-	
+
 		/*
 		std::cout << "after del_w = ";
 		for(int j = 0; j < s*b; ++j){
@@ -398,14 +398,14 @@ void cabcd(	std::vector<int> &rowidx,
 		//std::cout << "w = ";
 		//	std::cout << w[index[j]] << " ";
 		//std::cout << std::endl;
-		
+
 
 		// Update local alpha
 		gramst = MPI_Wtime();
 		mkl_dcsrmv(&transa, &len, &gram_size, &one, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], del_w, &one, alpha);
 		//dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_w, &incx, &one, alpha, &incx);
 		gramagg += MPI_Wtime() - gramst;
-		
+
 
 
 		sampcolidx.clear(); sampvals.clear(); //sampres.clear();
@@ -416,10 +416,10 @@ void cabcd(	std::vector<int> &rowidx,
 		/*
 		 * End Inner s-step loop
 		*/
-		
+
 	}
 
-	
+
 }
 
 //sampling tuning choices: randomly permute data matrix during I/O. after I/O. randomly select a column at a time.
@@ -430,7 +430,7 @@ int main (int argc, char* argv[])
 	int m, n;
 	char *fname;
 
-	
+
 	double lambda, tol;
 	int maxit, seed, freq, s, b;
 
@@ -464,10 +464,10 @@ int main (int argc, char* argv[])
 	int niter = atoi(argv[11]);
 
 	std::string lines = libsvmread(fname, m, n);
-	
+
 	std::vector<int> rowidx, colidx;
 	std::vector<double> y, vals;
-	
+
 	int dual_method = 0;
 	parse_lines_to_csr(lines, rowidx, colidx, vals, y, dual_method);
 		/*
@@ -510,13 +510,13 @@ int main (int argc, char* argv[])
 	for(int i = 0; i < npes; ++i)
 		std::cout << "displs2[" << i << "] = " << displs2[i];
 	std::cout << std::endl;
-	}		
+	}
 	*/
 	MPI_Barrier(MPI_COMM_WORLD);
 	if(rank == 0)
 		std::cout << "Starting warm-up call" << std::endl;
 	cabcd(rowidx, colidx, vals, m, n, y, y.size(), lambda, s, b, maxit, tol, seed, freq, w, comm);
-	
+
 	s = 1;
 	for(int k = 0; k < 4; ++k){
 		if(b > n)
@@ -567,7 +567,7 @@ int main (int argc, char* argv[])
 	free(localX); free(localy);
 	free(cnts); free(displs);
 	free(cnts2); free(displs2);
-	*/	
+	*/
 	MPI_Finalize();
 	return 0;
 }

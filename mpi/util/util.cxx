@@ -14,7 +14,6 @@
 
 #include "util.h"
 
-/*Change overlap so that processors **go back** to the last newline... instead of going forward!! Might prevent fall-off from end.*/
 std::string libsvmread(const char* fname, int m, int n){
 	int i = 0, idx = 0;
 
@@ -115,15 +114,16 @@ std::string libsvmread(const char* fname, int m, int n){
 	return lines;
 }
 
+/* Parse file chunk into the dense vector y and local 3-array CSR matrices based.
+ * Matrix is already in 1D-column layout (Good for primal method). Need to perform All_to_allv for 1D-row (good for dual method).
+ *
+ * Also, ensure that nnz per rank is roughly load-balanced.
+ * Easiest to just construct CSRmatrices and compare length of vals vector.
+ *
+ * Load Balance if needed. Compare performance with/without LB.
+ * */
 void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector<int> &colidx, std::vector<double> &vals, std::vector<double> &y, int dual_method){
-	/* Parse file chunk into the dense vector y and local 3-array CSR matrices based.
-	 * Matrix is already in 1D-column layout (Good for primal method). Need to perform All_to_allv for 1D-row (good for dual method).
-	 *
-	 * Also, ensure that nnz per rank is roughly load-balanced.
-	 * Easiest to just construct CSRmatrices and compare length of vals vector.
-	 *
-	 * Load Balance if needed. Compare performance with/without LB.
-	 * */
+
 	int rank, npes;
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -141,7 +141,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 
 	rowidx.push_back(1);
 	//std::cout << "original " << lines << std::endl << std::endl;
-	
+
 	std::stringstream strm_line(lines);
 	while(std::getline(strm_line, word, '\n') && !strm_line.eof()){
 		//std::cout << word << std::endl;
@@ -182,7 +182,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		size_t avg  = ncols/npes;
 		size_t rem = ncols % npes;
 		offsets[0] = 1;
-		
+
 		///if(rank == 0)
 		//	std::cout << "Avg = " << avg << " rem = " << rem << std::endl;
 
@@ -228,9 +228,9 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		send_displ.pop_back();
 		std::vector<int> total_cnts(npes, 0);
 		//Call MPI_Alltoall to get partial send cnts to get recv displs.
-		
+
 		MPI_Alltoall(&send_cnts[0], 1, MPI_INT, &total_cnts[0], 1, MPI_INT, MPI_COMM_WORLD);
-		
+
 		//for(int i = 0; i < npes; ++i)
 		//	std::cout << "rank " << rank << " recv_cnts[" << i << "] = " << total_cnts[i];
 		//std::cout << std::endl;
@@ -250,17 +250,17 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		//Need to transpose matrix since mkl_dcsrmult only allows X^T*X and not XX^T.
 			//**TODO: If mkl_dcsrmult eventually allows XX^T, then we can avoid transpose.
 			//**TODO: If mkl also supports CSC (i.e. mkl_dcscmult), then we can store in CSC.
-		
+
 		int swpptr = 0, swpcol = 0;
 		double swpval = 0.;
 		int newid = 1;
-		
+
 		/*
 		for(int i = 0; i < total; ++i)
 			std::cout << recv_cols[i] << ':' << recv_vals[i] << ' ';
 		std::cout << std::endl;
 		*/
-		
+
 		for(int i = 1; i <= pcols[rank]; ++i){
 			for(int j = swpptr; j < recv_vals.size(); ++j){
 				if(recv_cols[j] == i){
@@ -291,13 +291,13 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		int prevcol = recv_cols[0];
 		int curcol = 0, cnt_rownnz = 2;
 		std::vector<int> new_rowidx(1,1);
-		
+
 		/*
 		for(int i = 0; i < total; ++i)
 			std::cout << recv_cols[i] << ':' << recv_vals[i] << ' ';
 		std::cout << std::endl;
 		*/
-		
+
 		for (size_t i = 1; i < recv_cols.size(); i++) {
 			curcol = recv_cols[i];
 			if(prevcol >= curcol){
@@ -320,7 +320,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		std::vector<int> ydispl(npes, 0);
 		int sendlen = y.size();
 		MPI_Allgather(&sendlen, 1, MPI_INT, &ylen_comm[0], 1, MPI_INT, MPI_COMM_WORLD);
-		
+
 		nrows = ylen_comm[0];
 		//if(rank == 0)
 		//	std::cout << "ydispl " << ydispl[0];
@@ -336,7 +336,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 
 		std::vector<double> new_y(nrows, 0.);
 		MPI_Allgatherv(&y[0], sendlen, MPI_DOUBLE, &new_y[0], &ylen_comm[0], &ydispl[0], MPI_DOUBLE, MPI_COMM_WORLD);
-		
+
 
 		//Need to copy recv_vals, _cols, new_rowidx and new_y into the input std::vectors rowidx, colidx, vals, and y.
 		rowidx = new_rowidx;
