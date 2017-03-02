@@ -42,6 +42,7 @@ void cabdcd(	std::vector<int> &rowidx,
 	int gram_size = s*b;
 	int ngram = s*b*s*b;
 
+	std::cout << std::setprecision(4) << std::fixed;
 	//std::cout << m << "-by-" << n << "local columns " << len << std::endl;
 
 	assert(0==Malloc_aligned(double, alpha, n, ALIGN));
@@ -250,9 +251,9 @@ void cabdcd(	std::vector<int> &rowidx,
 			free(alpha); free(Xsamp); free(G); free(recvG);
 			free(index); free(del_a); free(ysamp); free(asamp);
 			if(rank == 0){
-				std::cout << "Outer loop computation time: " << gramagg << std::endl;
-				std::cout << "Inner loop computation time: " << inneragg << std::endl;
-				std::cout << "MPI_Allreduce time: " << commagg << std::endl;
+				std::cout << "Outer loop computation time: " << 1000*(gramagg)<< " ms"  << std::endl;
+				std::cout << "Inner loop computation time: " << 1000*(inneragg)<< " ms"  << std::endl;
+				std::cout << "MPI_Allreduce time: " << 1000*(commagg) << " ms" << std::endl;
 			}
 			/*
 			for(int i = 0; i < m; ++i)
@@ -316,9 +317,9 @@ void cabdcd(	std::vector<int> &rowidx,
 				free(alpha); free(Xsamp); free(G); free(recvG);
 				free(index); free(del_a); free(asamp); free(ysamp);
 				if(rank == 0){
-					std::cout << "Outer loop computation time: " << gramagg << std::endl;
-					std::cout << "Inner loop computation time: " << inneragg << std::endl;
-					std::cout << "MPI_Allreduce time: " << commagg << std::endl;
+					std::cout << "Outer loop computation time: " << 1000*(gramagg)<< " ms"  << std::endl;
+					std::cout << "Inner loop computation time: " << 1000*(inneragg)<< " ms"  << std::endl;
+					std::cout << "MPI_Allreduce time: " << 1000*(commagg) << " ms" << std::endl;
 				}
 				/*
 				for(int i = 0; i < m; ++i)
@@ -347,13 +348,14 @@ void cabdcd(	std::vector<int> &rowidx,
 		gramst = MPI_Wtime();
 		//dgemv(&transb, &gram_size, &len, &rho, Xsamp, &gram_size, del_a, &incx, &one, w, &incx);
 		mkl_dcsrmv(&transa, &len, &gram_size, &rho, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], del_a, &one, w);
-		
+		gramagg += MPI_Wtime() - gramst;
+
 		sampcolidx.clear(); sampvals.clear();
 		samprowidx[0] = 1;
 		memset(G, 0, sizeof(double)*gram_size*(gram_size+2));
 		memset(recvG, 0, sizeof(double)*gram_size*(gram_size+2));
 		memset(del_a, 0, sizeof(double)*gram_size);
-		gramagg += MPI_Wtime() - gramst;
+
 		/*
 		 * End Inner s-step loop
 		*/
@@ -440,24 +442,49 @@ int main (int argc, char* argv[])
 	}
 	*/
 
-	if(rank == 0)
-		std::cout << "Calling CA-BDCD with " << n <<  "-by-" << m << " matrix X and s = " << s << std::endl;
-	cabdcd(rowidx, colidx, vals, n, m, y, ncols, lambda, s, b, maxit, tol, seed, freq, w, comm);
-	algst = MPI_Wtime();
-	for(int i = 0; i < niter; ++i){
-		cabdcd(rowidx, colidx, vals, n, m, y, ncols, lambda, s, b, maxit, tol, seed, freq, w, comm);
 
+	s = 1;
+	for(int k = 0; k < 4; ++k){
+		if(b > n)
+			continue;
+		for(int j = 0; j < 7; ++j){
+			if(rank == 0){
+				std::cout << std::endl << std::endl;
+				std::cout << "s = " << s << ", " << "b = " << b << std::endl;
+			}
+			//cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
+			cabdcd(rowidx, colidx, vals, n, m, y, ncols, lambda, s, b, maxit, tol, seed, freq, w, comm);
+			algst = MPI_Wtime();
+			for(int i = 0; i < niter; ++i){
+				//cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
+				cabdcd(rowidx, colidx, vals, n, m, y, ncols, lambda, s, b, maxit, tol, seed, freq, w, comm);
+				/*
+				if(rank == 0){
+					std::cout << "w = ";
+					for(int i = 0; i < n; ++i)
+						printf("%.4f ", w[i]);
+					std::cout << std::endl;
+				}
+				*/
+			}
+			algstp = MPI_Wtime();
+			double algmaxt = 1000*(algstp - algst)/niter;
+			double algmax;
+			MPI_Reduce(&algmaxt, &algmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+			if(rank == 0)
+				std::cout << std::endl << "Total CA-BCD time: " << algmax << " ms" << std::endl;
+			s *= 2;
+		}
+		s = 1;
+		b *= 2;
 	}
-	algstp = MPI_Wtime();
+
 	std::cout << "rank = " << rank <<  " w = ";
 	for(int i = 0; i < ncols; ++i)
 		printf("%.4f ", w[i]);
 	std::cout << std::endl;
 
-	if(rank == 0){
-		std::cout << std::endl << "Total CA-BDCD time: " << (algstp - algst)/niter  << std::endl;
-	}
-	
+
 	free(w); rowidx.clear(); colidx.clear(); vals.clear(); y.clear();
 
 	MPI_Finalize();

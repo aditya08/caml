@@ -548,8 +548,11 @@ int main (int argc, char* argv[])
 				*/
 			}
 			algstp = MPI_Wtime();
+			double algmaxt = 1000*(algstp - algst)/niter;
+			//double algmax;
+			//MPI_Reduce(&algmaxt, &algmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 			if(rank == 0)
-				std::cout << std::endl << "Total CA-BCD time: " << 1000*(algstp - algst)/niter << " ms" << std::endl;
+				std::cout << std::endl << "Total CA-BCD time: " << algmaxt << " ms" << std::endl;
 			s *= 2;
 		}
 		s = 1;
