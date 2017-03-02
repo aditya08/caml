@@ -259,16 +259,17 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		for(int i = 0; i < total; ++i)
 			std::cout << recv_cols[i] << ':' << recv_vals[i] << ' ';
 		std::cout << std::endl;
+		std::cout << std::endl;
 		*/
+
+	std::vector<int> trans_cols;
+	std::vector<double> trans_vals;
 
 		for(int i = 1; i <= pcols[rank]; ++i){
 			for(int j = swpptr; j < recv_vals.size(); ++j){
 				if(recv_cols[j] == i){
-
-					std::swap(recv_cols[j], recv_cols[swpptr]);
-					std::swap(recv_vals[j], recv_vals[swpptr]);
-					recv_cols[swpptr] = newid;
-					swpptr++;
+					trans_cols.push_back(newid);
+					trans_vals.push_back(recv_vals[j]);
 					newid++;
 					/*
 					swpcol = recv_cols[j];
@@ -286,15 +287,21 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 			newid = 1;
 		}
 
+		recv_cols = trans_cols;
+		recv_vals = trans_vals;
+		
+		trans_cols.clear(); trans_vals.clear();
+
 		/*re-construct rowidx vector (ASSUMPTION: colidxs are in increasing order, so row_end/newrow_begin are easy to find.)
 		*/
 		int prevcol = recv_cols[0];
 		int curcol = 0, cnt_rownnz = 2;
 		std::vector<int> new_rowidx(1,1);
-
+		
 		/*
 		for(int i = 0; i < total; ++i)
 			std::cout << recv_cols[i] << ':' << recv_vals[i] << ' ';
+		std::cout << std::endl;
 		std::cout << std::endl;
 		*/
 

@@ -516,6 +516,12 @@ int main (int argc, char* argv[])
 	if(rank == 0)
 		std::cout << "Starting warm-up call" << std::endl;
 	cabcd(rowidx, colidx, vals, m, n, y, y.size(), lambda, s, b, maxit, tol, seed, freq, w, comm);
+	if(rank == 0){
+		std::cout << "w = ";
+		for(int i = 0; i < n; ++i)
+			std::cout << std::setprecision(4) << std::fixed << w[i] << " ";
+		std::cout << std::endl;
+	}
 
 	s = 1;
 	for(int k = 0; k < 4; ++k){
@@ -548,12 +554,6 @@ int main (int argc, char* argv[])
 		}
 		s = 1;
 		b *= 2;
-		if(rank == 0){
-			std::cout << "w = ";
-			for(int i = 0; i < n; ++i)
-				std::cout << std::setprecision(4) << std::fixed << w[i] << " ";
-			std::cout << std::endl;
-		}
 	}
 	/*
 	if(rank == 0){
