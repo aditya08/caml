@@ -16,7 +16,7 @@ cabdcd : cabdcd.o ../../util/libutil.a
 	$(CC) -o $@ $^ $(LDLIBS)
 
 %.o : %.cxx %.h
-	$(CC) -c $(CXXFLAGS) $(LDLIBS) $<
+	$(CC) -c $< $(CXXFLAGS) $(LDLIBS)
 
 .PHONY : clean
 clean:

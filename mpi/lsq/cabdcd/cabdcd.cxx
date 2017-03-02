@@ -25,7 +25,7 @@ void cabdcd(	std::vector<int> &rowidx,
 							int seed,
 							int freq,
 							double *w,
-							MPI_Comm comm);
+							MPI_Comm comm)
 {
 	int npes, rank;
 	MPI_Comm_size(comm, &npes);
@@ -449,21 +449,9 @@ int main (int argc, char* argv[])
 
 	if(rank == 0){
 		std::cout << std::endl << "Total CA-BDCD time: " << (algstp - algst)/niter  << std::endl;
-		free(X); free(y);
 	}
-	MPI_Barrier(comm);
-	MPI_Barrier(comm);
-	MPI_Barrier(comm);
-	MPI_Barrier(comm);
-	MPI_Barrier(comm);
-	std::cout << " rank " << rank << " w = ";
-	for(int i = 0; i < cnts2[rank]; ++i)
-		std::cout << w[i] << " ";
-	std::cout << std::endl;
-	MPI_Barrier(comm);
-	free(localX); free(w);
-	free(cnts); free(displs);
-	free(cnts2); free(displs2);
+	
+	free(w); rowidx.clear(); colidx.clear(); vals.clear(); y.clear();
 
 	MPI_Finalize();
 	return 0;

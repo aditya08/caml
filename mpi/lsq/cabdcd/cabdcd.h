@@ -2,6 +2,7 @@
 #define DEVARAKONDA_deb51010468d4eeb92dc22f494eb9eab
 	
 	#include "mpi.h"
+	#include <vector>
 	void cabdcd(	std::vector<int> &rowidx,
 					std::vector<int> &colidx,
 					std::vector<double> &vals,
