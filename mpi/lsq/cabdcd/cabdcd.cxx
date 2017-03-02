@@ -10,20 +10,22 @@
 #include "cabdcd.h"
 #include "util.h"
 
-void cabdcd(	double *X,	//input args
-				int m,
-				int n,
-				double *y,
-				int len,
-				double lambda,
-				int s,
-				int b,
-				int maxit,
-				double tol,
-				int seed,
-				int freq,
-				double *w,
-				MPI_Comm comm)	//output arg: allocated in function.
+void cabdcd(	std::vector<int> &rowidx,
+					std::vector<int> &colidx,
+					std::vector<double> &vals,
+					int m,
+					int n,
+					std::vector<double> &y,
+					int len,
+					double lambda,
+					int s,
+					int b,
+					int maxit,
+					double tol,
+					int seed,
+					int freq,
+					double *w,
+					MPI_Comm comm);
 {
 	int npes, rank;
 	MPI_Comm_size(comm, &npes);
@@ -331,8 +333,6 @@ int main (int argc, char* argv[])
 	MPI_Init(&argc, &argv);
 	int npes, rank;
 	int m, n;
-	int *cnts, *cnts2, *displs, *displs2;
-	double *X, *y, *localX, *localy;
 	char *fname;
 
 	
@@ -369,61 +369,19 @@ int main (int argc, char* argv[])
 	int niter = atoi(argv[11]);
 
 	
-	int flag = 1;
-	cnts = Malloc(int, npes);
-	cnts2 = Malloc(int, npes);
-	displs = Malloc(int, npes);
-	displs2 = Malloc(int, npes);
+	std::string lines = libsvmread(fname, m, n);
 
-	staticLB_1d(m, n, npes, flag, cnts, displs, cnts2, displs2);
+	std::vector<int> rowidx, colidx;
+	std::vector<double> y, vals;
 
-	assert(0==Malloc_aligned(double, localX, cnts[rank], ALIGN));
-	assert(0==Malloc_aligned(double, y, m, ALIGN));
-	if(rank == 0 && strcmp(fname, "none") != 0){
-		assert(0==Malloc_aligned(double, X, m*n, ALIGN));
-		std::cout << "Reading file on rank 0" << std::endl;
-		double iost = MPI_Wtime();
-		libsvmread(fname, m, n, X, m, y);
-		mkl_dimatcopy('C', 'T', n, m, 1.0, X, n, m); 
-		double iostp = MPI_Wtime();
-		std::cout << "Finished reading file in " << iostp - iost << " seconds." << std::endl;
-	}
-	//compute scatter offsets
+	int dual_method = 1;
+	parse_lines_to_csr(lines, rowidx, colidx, vals, y, dual_method);
 
-
-	if(strcmp(fname, "none") != 0){
-		
-		//for(int i = 0; i < m*n; ++i)
-		//	std::cout << X[i] << " ";
-		//std::cout << std::endl;
-		double scatterst = MPI_Wtime();
-		/*
-		for(int i = 0; i < npes; ++i){
-			std::cout << cnts[i] << " ";
-		}
-		std::cout << std::endl;
-		*/
-
-		MPI_Scatterv(X, cnts, displs, MPI_DOUBLE, localX, cnts[rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
-		MPI_Bcast(y, m, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-		//std::cout << "cnts2[" << rank << "] = " << cnts2[rank] << std::endl;
-		//std::cout << y[0] << std::endl;
-		double scatterstp = MPI_Wtime();
-		if(rank == 0){
-			std::cout << "Finished Scatter of X and y in " << scatterstp - scatterst << " seconds." << std::endl;
-			//free(X); free(y);
-		}
-	}
-	else{
-		srand48(seed+rank);
-		for(int i = 0; i < cnts[rank]; ++i)
-			localX[i] = drand48();
-		for(int i = 0; i < m; ++i)
-			y[i] = drand48();
-	}
 	double algst, algstp;
 	double *w;
-	assert(0==Malloc_aligned(double, w, cnts2[rank], ALIGN));
+	int ncols = n/npes;
+	ncols += (rank < n % npes) ? 1 : 0;
+	assert(0==Malloc_aligned(double, w, ncols, ALIGN));
 
 	/*
 	if(rank == 0){
@@ -441,7 +399,7 @@ int main (int argc, char* argv[])
 
 	if(rank == 0)
 		std::cout << "Calling CA-BDCD with " << n <<  "-by-" << m << " matrix X and s = " << s << std::endl;
-	cabdcd(localX, n, m, y, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
+	cabdcd(rowidx, colidx, vals, m, n, y, y.size(), lambda, s, b, maxit, tol, seed, freq, w, comm);
 	algst = MPI_Wtime();
 	for(int i = 0; i < niter; ++i){
 		cabdcd(localX, n, m, y, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);

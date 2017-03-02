@@ -215,7 +215,7 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 				tmpcolidx = colidx[j];
 				if(tmpcolidx >= offsets[i] && tmpcolidx < offsets[i+1]){
 					send_vals.push_back(vals[j]);
-					send_colidx.push_back(colidx[j]);
+					send_colidx.push_back(colidx[j] - offsets[i] + 1);
 					send_cnts[i]++;
 				}
 			}
@@ -247,16 +247,57 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 		MPI_Alltoallv(&send_vals[0], &send_cnts[0], &send_displ[0], MPI_DOUBLE, &recv_vals[0], &total_cnts[0], &recv_displ[0], MPI_DOUBLE, MPI_COMM_WORLD);
 		MPI_Alltoallv(&send_colidx[0], &send_cnts[0], &send_displ[0], MPI_INT, &recv_cols[0], &total_cnts[0], &recv_displ[0], MPI_INT, MPI_COMM_WORLD);
 
+		//Need to transpose matrix since mkl_dcsrmult only allows X^T*X and not XX^T.
+			//**TODO: If mkl_dcsrmult eventually allows XX^T, then we can avoid transpose.
+			//**TODO: If mkl also supports CSC (i.e. mkl_dcscmult), then we can store in CSC.
+		
+		int swpptr = 0, swpcol = 0;
+		double swpval = 0.;
+		int newid = 1;
+		
+		/*
+		for(int i = 0; i < total; ++i)
+			std::cout << recv_cols[i] << ':' << recv_vals[i] << ' ';
+		std::cout << std::endl;
+		*/
+		
+		for(int i = 1; i <= pcols[rank]; ++i){
+			for(int j = swpptr; j < recv_vals.size(); ++j){
+				if(recv_cols[j] == i){
+
+					std::swap(recv_cols[j], recv_cols[swpptr]);
+					std::swap(recv_vals[j], recv_vals[swpptr]);
+					recv_cols[swpptr] = newid;
+					swpptr++;
+					newid++;
+					/*
+					swpcol = recv_cols[j];
+					swpval = recv_vals[j];
+
+					recv_cols[j] = recv_cols[swpptr];
+					recv_vals[j] = recv_vals[swpptr];
+
+					recv_cols[swpptr] = swpcol;
+					recv_vals[swpptr] = swpval;
+					*/
+
+				}
+			}
+			newid = 1;
+		}
+
 		/*re-construct rowidx vector (ASSUMPTION: colidxs are in increasing order, so row_end/newrow_begin are easy to find.)
 		*/
 		int prevcol = recv_cols[0];
 		int curcol = 0, cnt_rownnz = 2;
 		std::vector<int> new_rowidx(1,1);
-
-		//for(int i = 0; i < total; ++i)
-		//	std::cout << recv_cols[i] << ':' << recv_vals[i] << ' ';
-		//std::cout << std::endl;
-
+		
+		/*
+		for(int i = 0; i < total; ++i)
+			std::cout << recv_cols[i] << ':' << recv_vals[i] << ' ';
+		std::cout << std::endl;
+		*/
+		
 		for (size_t i = 1; i < recv_cols.size(); i++) {
 			curcol = recv_cols[i];
 			if(prevcol >= curcol){

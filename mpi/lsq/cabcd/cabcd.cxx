@@ -463,13 +463,13 @@ int main (int argc, char* argv[])
 	s = atoi(argv[10]);
 	int niter = atoi(argv[11]);
 
-
 	std::string lines = libsvmread(fname, m, n);
 	
 	std::vector<int> rowidx, colidx;
 	std::vector<double> y, vals;
 	
-	parse_lines_to_csr(lines, rowidx, colidx, vals, y);
+	int dual_method = 0;
+	parse_lines_to_csr(lines, rowidx, colidx, vals, y, dual_method);
 		/*
 		for(int i = 0; i < y.size(); ++i)
 			std::cout << y[i] << ' ';
