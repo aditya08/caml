@@ -11,7 +11,7 @@
 #include "cabdcd.h"
 #include "util.h"
 
-void cabdcd(	std::vector<int> &rowidx,
+void cabdcd(				std::vector<int> &rowidx,
 							std::vector<int> &colidx,
 							std::vector<double> &vals,
 							int m,
@@ -32,8 +32,8 @@ void cabdcd(	std::vector<int> &rowidx,
 	MPI_Comm_size(comm, &npes);
 	MPI_Comm_rank(comm, &rank);
 
-
-	double *alpha, *res,  *obj_err, *sol_err;
+//	std::cout << " y.size() " << y.size() << std::endl;
+	double *alpha, *sampres, *sampres_sum, *res,  *obj_err, *sol_err;
 	double *del_a;
 
 	double *G, *recvG, *Xsamp, *asamp, *ysamp;
@@ -46,6 +46,8 @@ void cabdcd(	std::vector<int> &rowidx,
 	//std::cout << m << "-by-" << n << "local columns " << len << std::endl;
 
 	assert(0==Malloc_aligned(double, alpha, n, ALIGN));
+	assert(0==Malloc_aligned(double, sampres, n, ALIGN));
+	assert(0==Malloc_aligned(double, sampres_sum, n, ALIGN));
 	assert(0==Malloc_aligned(double, G, gram_size*(gram_size + 2), ALIGN));
 	assert(0==Malloc_aligned(double, recvG, s*b*(s*b + 2), ALIGN));
 	assert(0==Malloc_aligned(double, del_a, s*b, ALIGN));
@@ -65,6 +67,8 @@ void cabdcd(	std::vector<int> &rowidx,
 	double one = 1., zero = 0., neg = -1.;
 	int info, nrhs = 1;
 	int lGcols = b;
+	int rescnt = 0;
+	double resnrm;
 
 	char matdesc[6];
 	matdesc[0] = 'G'; matdesc[3] = 'F';
@@ -100,6 +104,13 @@ void cabdcd(	std::vector<int> &rowidx,
 				}
 			}
 		}
+		//std::cout << "y[index] " << y[index[0]] << std::endl;
+		//int col = 0;
+		//for(int i = 0; i < colidx.size(); ++i){
+		//	col = (col > colidx[i]) ? col : colidx[i];
+		//}
+		//std::cout << " largest colidx = " << col << std::endl;
+		//std::cout << " largest rowidx = " << rowidx.size()-1 << std::endl;
 
 		for(int i = 1; i < rowidx.size(); ++i){
 			samprowidx[i] = samprowidx[i-1];
@@ -109,7 +120,7 @@ void cabdcd(	std::vector<int> &rowidx,
 					cidx = colidx[j];
 					tval = vals[j];
 					if(cidx == index[k]+1){
-						//std::cout << "currently i = " << i << std::endl;
+						//std::cout << "currently cidx = " << cidx << std::endl;
 						sampcolidx.push_back(k+1);
 						sampvals.push_back(tval);
 						//std::cout << "Incrementing samprowidx[" << i << "] to " << samprowidx[i] + 1 << std::endl;
@@ -118,7 +129,13 @@ void cabdcd(	std::vector<int> &rowidx,
 				}
 			}
 		}
+		/*
+		if(rank == 144 || rank == 146 || rank == 155 || rank == 158 ){
+			std::cout << "rank = " << rank << " len = " << len << " sampvals.size() " << sampvals.size() << " sampcolidx.size() " << sampcolidx.size() << " samprowidx.size() " << samprowidx.size() << std::endl; 
 
+			std::cout << "index = " << index[0] << " y.size() " << y.size() << std::endl;
+		}
+		*/
 		//std::cout << "ysamp = ";
 		for(int i = 0; i < s*b; ++i){
 			//TODO: need to sample without replacement
@@ -141,9 +158,15 @@ void cabdcd(	std::vector<int> &rowidx,
 		//dgemm(&transa, &transb, &gram_size, &gram_size, &len, &alp, Xsamp, &gram_size, Xsamp, &gram_size, &zero, G, &gram_size);
 		//std::cout << "dot product" << (1./n)*ddot(&len, Xsamp + 0, &gram_size, Xsamp + 1, &gram_size)+lambda << std::endl;
 
+		//std::cout << "rank = " << rank << " finished selecting block and creating sampled matrix. ncols = " << len << " m = " << m << " n = " << n<< " sampcolidx.size() = " << sampcolidx.size() << std::endl;
+		//for(int i = 0; i < sampcolidx.size(); ++i){
+		//	std::cout << sampcolidx[i] << std::endl;
+		//}
+		
 		mkl_dcsrmultd(&transb, &len, &gram_size, &gram_size, &sampvals[0], &sampcolidx[0], &samprowidx[0],  &sampvals[0], &sampcolidx[0], &samprowidx[0], G, &gram_size);
+		//std::cout << "G[0]" << G[0] << std::endl;
 		dscal(&ngram, &alp, G, &incx);
-
+		
 
 		// Compute y and alpha components of residual based on sampled rows.
 		//std::cout << "Calling DGEMV" << std::endl;
@@ -165,6 +188,7 @@ void cabdcd(	std::vector<int> &rowidx,
 		for(int i =0; i < s*b; ++i)
 				recvG[i + i*s*b] += 1./n;
 
+		//std::cout << "recvG[0]" << recvG[0] << std::endl;
 		/*
 		if(rank == 0){
 			for(int i = 0; i < s*b; ++i){
@@ -195,11 +219,13 @@ void cabdcd(	std::vector<int> &rowidx,
 
 		//combine residual updates into one vector
 
+		//std::cout << "asamp[0] " << asamp[0] << std::endl;
+		//std::cout << "ysamp[0] " << ysamp[0] << std::endl;
 		daxpy(&gram_size, &gam, asamp, &incx, recvG + s*b*s*b, &incx);
 		daxpy(&gram_size, &gam, ysamp, &incx, recvG + s*b*(s*b), &incx);
 
 		dcopy(&gram_size, recvG + s*b*(s*b), &incx, del_a, &incx);
-
+		//std::cout << "del_a[0] " << del_a[0] << std::endl;
 		/*
 		if(rank == 0){
 			std::cout << "residual on rank " << rank << " iter " << iter << std::endl;
@@ -348,6 +374,53 @@ void cabdcd(	std::vector<int> &rowidx,
 		gramst = MPI_Wtime();
 		//dgemv(&transb, &gram_size, &len, &rho, Xsamp, &gram_size, del_a, &incx, &one, w, &incx);
 		mkl_dcsrmv(&transa, &len, &gram_size, &rho, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], del_a, &one, w);
+		
+		if(iter/freq == rescnt){
+			/*
+			std::cout << "len = " << len << std::endl;
+			std::cout << "nrows = " << rowidx.size()-1 << std::endl;
+			std::cout << "ncols = " << y.size() << std::endl;
+			std::cout << "colidx.size() = " << colidx.size() << std::endl;
+			std::cout << "vals.size() = " << vals.size() << std::endl;
+			for(int i = 0; i < rowidx.size(); ++i)
+				std::cout << rowidx[i] << ' ';
+			std::cout << std::endl;
+
+			for(int i = 0; i < colidx.size(); ++i)
+				std::cout << colidx[i] << ' ';
+			std::cout << std::endl;
+			
+			for(int i = 0; i < vals.size(); ++i)
+				std::cout << vals[i] << ' ';
+			std::cout << std::endl;
+			*/
+			mkl_dcsrmv(&transb, &len, &n, &bet, matdesc, &vals[0], &colidx[0], &rowidx[0], &rowidx[1], &w[0], &zero, &sampres[0]);
+			//std::cout << "sampres[1] = " << sampres[0] << std::endl;
+			//std::cout << "sampres[n] = " << sampres[n-1] << std::endl;
+			//free(alpha);
+			MPI_Allreduce(sampres, sampres_sum, n, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+			daxpy(&n, &gam, alpha, &incx, sampres_sum, &incx);
+			daxpy(&n, &gam, &y[0], &incx, sampres_sum, &incx);
+
+			resnrm = dnrm2(&n, sampres_sum, &incx);
+			//if(rank == 0)
+			//	std::cout << "current dual residual: " << resnrm << std::endl;
+			rescnt++;
+			if(resnrm <= tol){
+				free(alpha); free(Xsamp); free(G); free(recvG);
+				free(index); free(del_a); free(ysamp); free(asamp);
+				samprowidx.clear(); sampcolidx.clear(); sampvals.clear();
+				
+				if(rank == 0){
+					std::cout << "CA-BDCD converged with dual residual: " << resnrm << std::setprecision(4) << " At outer iteration: " << iter/s << std::endl;
+					std::cout << "Outer loop computation time: " << gramagg*1000 << " ms" << std::endl;
+					std::cout << "Inner loop computation time: " << inneragg*1000 << " ms" << std::endl;
+					std::cout << "MPI_Allreduce time: " << commagg*1000 << " ms" << std::endl;
+				}
+				return;
+			}
+		}
+		
 		gramagg += MPI_Wtime() - gramst;
 
 		sampcolidx.clear(); sampvals.clear();
@@ -412,13 +485,56 @@ int main (int argc, char* argv[])
 	std::vector<int> rowidx, colidx;
 	std::vector<double> y, vals;
 
-	int dual_method = 1;
-	parse_lines_to_csr(lines, rowidx, colidx, vals, y, dual_method);
+	int dual_method = 0;
+	parse_lines_to_csr(lines, rowidx, colidx, vals, y, dual_method, m , n);
+
+	//for(int i = 0; i < y.size(); ++i)
+	//	std::cout << y[i] << std::endl;
+	//std::cout << std::endl;
+
+	std::vector<int> ylen(npes,0);
+	std::vector<int> ydispl(npes,0);
+	ylen[rank] = y.size();
+	int ysize = y.size();
+	//std::cout << "y.size() " << y.size() << std::endl;
+	MPI_Allgather(&ysize, 1, MPI_INT, &ylen[0], 1, MPI_INT, MPI_COMM_WORLD);
+	
+	ysize = (ylen[0] > n) ? n: ylen[0];
+	ylen[0] = ysize;
+
+	//if(rank == 0)
+	//std::cout << "ylen.back() " << ylen[0] << std::endl;
+	for(int i = 1; i < npes; ++i){
+		if(ysize < n){
+			ydispl[i] = ydispl[i-1] + ylen[i-1];
+			ysize += ylen[i];
+			if(ysize > n){
+				ylen[i] -= (ysize - n);
+			}
+		}
+		else{
+			ylen[i] = 0;
+			ydispl[i] = ydispl[i-1];
+		}
+		//if(rank == 0)
+		//std::cout << "ylen.back() " << ylen[i] << std::endl;
+	}
+
+	std::vector<double> gathered_y(n, 0.);
+	MPI_Allgatherv(&y[0], ylen[rank], MPI_DOUBLE, &gathered_y[0], &ylen[0], &ydispl[0], MPI_DOUBLE, MPI_COMM_WORLD);
+
+	y = gathered_y;
+	//for(int i = 0; i < y.size(); ++i)
+	//	std::cout << y[i] << std::endl;
+	//std::cout << std::endl;
+	//std::cout << "ylen[0] " << ylen[rank] << std::endl;
+	gathered_y.clear(); ydispl.clear(); ylen.clear();
+
+	//std::cout << "y.size() " << y.size() << std::endl;
 
 	double algst, algstp;
 	double *w;
-	int ncols = n/npes;
-	ncols += (rank < n % npes) ? 1 : 0;
+	int ncols = rowidx.size()-1;
 	assert(0==Malloc_aligned(double, w, ncols, ALIGN));
 		std::cout << std::setprecision(4) << std::fixed;
 		/*
@@ -444,46 +560,45 @@ int main (int argc, char* argv[])
 
 
 	s = 1;
-	for(int k = 0; k < 4; ++k){
+	b = 1;
+	for(int k = 0; k < 2; ++k){
 		if(b > n)
 			continue;
-		for(int j = 0; j < 7; ++j){
+		for(int j = 0; j < 6; ++j){
 			if(rank == 0){
 				std::cout << std::endl << std::endl;
 				std::cout << "s = " << s << ", " << "b = " << b << std::endl;
 			}
 			//cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
-			cabdcd(rowidx, colidx, vals, n, m, y, ncols, lambda, s, b, maxit, tol, seed, freq, w, comm);
+			//cabdcd(rowidx, colidx, vals, m, n, y, ncols, lambda, s, b, maxit, tol, seed, freq, w, comm);
 			algst = MPI_Wtime();
 			for(int i = 0; i < niter; ++i){
 				//cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
-				cabdcd(rowidx, colidx, vals, n, m, y, ncols, lambda, s, b, maxit, tol, seed, freq, w, comm);
-				/*
-				if(rank == 0){
+				cabdcd(rowidx, colidx, vals, m, n, y, ncols, lambda, s, b, maxit, tol, seed, freq/b, w, comm);
+			}
+				/*if(rank == 0){
 					std::cout << "w = ";
-					for(int i = 0; i < n; ++i)
+					for(int i = 0; i < ncols; ++i)
 						printf("%.4f ", w[i]);
 					std::cout << std::endl;
-				}
-				*/
-			}
+				}*/
 			algstp = MPI_Wtime();
 			double algmaxt = 1000*(algstp - algst)/niter;
 			double algmax;
 			MPI_Reduce(&algmaxt, &algmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 			if(rank == 0)
-				std::cout << std::endl << "Total CA-BCD time: " << algmax << " ms" << std::endl;
+				std::cout << std::endl << "Total CA-BDCD time: " << algmax << " ms" << std::endl;
 			s *= 2;
 		}
 		s = 1;
-		b *= 2;
+		b *= 8;
 	}
-
+	/*
 	std::cout << "rank = " << rank <<  " w = ";
 	for(int i = 0; i < ncols; ++i)
 		printf("%.4f ", w[i]);
 	std::cout << std::endl;
-
+	*/
 
 	free(w); rowidx.clear(); colidx.clear(); vals.clear(); y.clear();
 
