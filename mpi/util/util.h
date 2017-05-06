@@ -14,7 +14,17 @@ inline int compare_idx(const void *a, const void *b){
 }
 
 std::string libsvmread(const char*, int, int);
-void parse_lines_to_csr(std::string, std::vector<int>&, std::vector<int>&, std::vector<double>&, std::vector<double>&, int);
+
+/*
+Use this routine to transpose the input matrix and write it out.
+If you have a short-wide matrix, parallel File I/O performs implict 1D-row. 
+If you need 1D-col, then you need to transpose (i.e. Alltoallv), but this throws off load-balancing.
+Best solution is probably to create a new file which stores the transpose of the matrix.
+*/
+void libsvmwrite(std::vector<int>&, std::vector<int>&, std::vector<double>&, std::vector<double>&, int, int, const char*);
+
+
+void parse_lines_to_csr(std::string, std::vector<int>&, std::vector<int>&, std::vector<double>&, std::vector<double>&, int, int, int);
 void staticLB_1d(int, int, int, int, int*, int*, int*, int*);
 //void staticLB_1drow(int, int, int, int**, int**);
 

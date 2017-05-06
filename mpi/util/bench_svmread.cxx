@@ -19,11 +19,11 @@ int main(int argc, char* argv[]){
 	MPI_Comm_size(MPI_COMM_WORLD, &npes);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	char* fname = argv[1];
+	const char* fname = argv[1];
 	int m = atoi(argv[2]);
 	int n = atoi(argv[3]);
-	int flag = atoi(argv[4]);
-	int p = atoi(argv[5]);
+	int dual_method = atoi(argv[4]);
+	const char* outfname = argv[5];
 
 	std::string lines = libsvmread(fname, m, n);
 	/*
@@ -34,23 +34,31 @@ int main(int argc, char* argv[]){
 
 	std::vector<int> rowidx, colidx;
 	std::vector<double> y, vals;
-	int dual_method = 1;
-	parse_lines_to_csr(lines, rowidx, colidx, vals, y, dual_method);
+	parse_lines_to_csr(lines, rowidx, colidx, vals, y, dual_method, m, n);
 		std::cout << std::setprecision(3) << std::fixed;
-		for(int i = 0; i < vals.size(); ++i)
-			std::cout << colidx[i] << ':' << vals[i] << ' ';
+		for(int i = 0; i < y.size(); ++i)
+			std::cout << y[i] << std::endl;
 		std::cout << std::endl;
+	if(outfname != NULL)
+		libsvmwrite(rowidx, colidx, vals, y, m, n, outfname);
+	return 0;
+	
 	
 	char trans = 'T';
 	m = rowidx.size() - 1;
+	size_t avg  = n/npes;
+	size_t rem = n % npes;
+	n = (rank < rem) ? (avg + 1) : avg;
+	
 	//if(rank == 0)
-	//std::cout << "nrows = " << m << std::endl;
+	std::cout << "nrows = " << m << std::endl;
+	std::cout << "ncols = " << n << std::endl;
 
 	double *G, *recvG;
-	Malloc_aligned(double, G, n*n, ALIGN);
-	Malloc_aligned(double, recvG, n*n, ALIGN);
+	Malloc_aligned(double, G, m*m, ALIGN);
+	Malloc_aligned(double, recvG, m*m, ALIGN);
 	
-	mkl_dcsrmultd(&trans, &m, &n, &n, &vals[0], &colidx[0], &rowidx[0],  &vals[0], &colidx[0], &rowidx[0], G, &n);
+	mkl_dcsrmultd(&trans, &n, &m, &m, &vals[0], &colidx[0], &rowidx[0],  &vals[0], &colidx[0], &rowidx[0], G, &n);
 	MPI_Reduce(G, recvG, n*n, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); 
 	
 	/*

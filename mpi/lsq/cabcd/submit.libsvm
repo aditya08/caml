@@ -1,17 +1,17 @@
 #!/bin/bash
-#SBATCH -J block2_cabcd_covtype.txt_1h        # job name
-#SBATCH -o block2_cabcd_covtype.txt_1h.o%j       # output and error file name (%j expands to jobID)
-#SBATCH -N 8       # total number of mpi tasks requested
-#SBATCH -p debug     # queue (partition) -- normal, development, etc.
-#SBATCH -t 00:20:00        # run time (hh:mm:ss) - 1.5 hours
+#SBATCH -J mnist8m_24k       # job name
+#SBATCH -o mnist8m_24k.o%j       # output and error file name (%j expands to jobID)
+#SBATCH -N 1024       # total number of mpi tasks requested
+#SBATCH -p regular     # queue (partition) -- debug, regular, etc.
+#SBATCH -t 00:10:00        # run time (hh:mm:ss) - 1.5 hours
 #SBATCH -A mp156
 #SBATCH -L SCRATCH
 #SBATCH --mail-user=aditya08@berkeley.edu
 #SBATCH --mail-type=end    # email me when the job finishes
 
 echo "Running s choice experiments"
-         
-./run.sh 192 ../../data/covtype.txt 581012 54 .004 40000 .001 100 10 1 1 2 8
+srun -n 24576 ./cabcd ../../../data/mnist8m 8100000 784 .001 1000 1e-3 100 10 1 1 3 2>&1 | tee mnist8m_24k.log
+#./run.sh 192 ../../data/covtype.txt 581012 54 .004 40000 .001 100 10 1 1 2 8
 #echo ""
 #echo ""
 #echo " s = 4"

@@ -25,7 +25,7 @@ void cabcd(	std::vector<int> &rowidx,
 						int seed,
 						int freq,
 						double *w,
-						MPI_Comm comm)	//output arg: allocated in function.
+						MPI_Comm comm)
 {
 	int npes, rank;
 	MPI_Comm_size(comm, &npes);
@@ -35,8 +35,9 @@ void cabcd(	std::vector<int> &rowidx,
 	double *alpha, *res,  *obj_err, *sol_err;
 	double *del_w;
 	double ctol;
-	double *G, *recvG, *Xsamp, *wsamp, *sampres;
+	double *G, *recvG, *Xsamp, *wsamp, *sampres, *sampres_sum;
 	int incx = 1;
+	int rescnt = 0;
 	int *index;
 	int gram_size = s*b;
 	int ngram = s*b*s*b;
@@ -47,7 +48,7 @@ void cabcd(	std::vector<int> &rowidx,
 	//	std::cout << "rank = " << rank << " ";
 	//	for(int i = 0; i < y.size(); ++i)
 	//		std::cout << y[i] << " ";
-	//	std::cout << std::endl;
+	//	std::cout << std::endl << "ysize: " << y.size() << std::endl;
 	//}
 
 	assert(0==Malloc_aligned(double, alpha, len, ALIGN));
@@ -57,9 +58,12 @@ void cabcd(	std::vector<int> &rowidx,
 	assert(0==Malloc_aligned(double, wsamp, s*b, ALIGN));
 	assert(0==Malloc_aligned(int, index, s*b, ALIGN));
 	assert(0==Malloc_aligned(double, sampres, n, ALIGN));
+	assert(0==Malloc_aligned(double, sampres_sum, n, ALIGN));
 
-	for(int i = 0; i < n; ++i)
+	for(int i = 0; i < n; ++i){
 		sampres[i] = 1.;
+		sampres_sum[i] = 1.;
+	}
 	//if(rank == 0)
 	//std::cout << "Initialized alpha and w to 0" << std::endl;
 	memset(alpha, 0, sizeof(double)*len);
@@ -68,6 +72,9 @@ void cabcd(	std::vector<int> &rowidx,
 	char transa = 'N', transb = 'T', uplo = 'U';
 	double alp = 1./m;
 	double one = 1., zero = 0., neg = -1.;
+	double neg_lambda = -lambda;
+	double neg_alp = -alp;
+	double resnrm = 1.;
 	int info, nrhs = 1;
 	int lGcols = b;
 	char matdesc[6];
@@ -289,7 +296,8 @@ void cabcd(	std::vector<int> &rowidx,
 			//gram_size = i*b;
 			//dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_w, &incx, &one, alpha, &incx);
 			free(alpha); free(G); free(recvG);
-			free(index); free(del_w); free(wsamp); free(sampres);
+			free(index); free(del_w); free(wsamp); 
+			free(sampres);
 			samprowidx.clear(); sampcolidx.clear(); sampvals.clear(); //sampres.clear();
 			MPI_Reduce(&gramagg, &grammax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 			MPI_Reduce(&inneragg, &innermax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
@@ -308,6 +316,11 @@ void cabcd(	std::vector<int> &rowidx,
 		}
 		//std::cout << "Iter count: " << iter << std::endl;
 
+		/*Compute residual and check if <= tolerance
+		 *	Compute this residual every 4*n iterations. Can change the constant later if necessary.
+		 * */
+		//std::cout << "len = " << len << " n = " << n << " m = " << m << std::endl;
+		
 		for(int i = 1; i < s; ++i){
 
 			// Compute residual based on previous subproblem solution
@@ -360,6 +373,10 @@ void cabcd(	std::vector<int> &rowidx,
 		}
 
 		//std::cout << "length 100" << std::endl;
+		
+		
+		/* !!Commenting out heuristic residual convergence test!!
+		
 		for(int i = 0; i < gram_size; ++i)
 			sampres[index[i]] = recvG[gram_size*(gram_size+1) + i];
 
@@ -385,6 +402,7 @@ void cabcd(	std::vector<int> &rowidx,
 				//	convcnt = 0; conviter = iter;
 				//}
 		}
+		*/
 
 		/*
 		std::cout << "after del_w = ";
@@ -404,6 +422,33 @@ void cabcd(	std::vector<int> &rowidx,
 		gramst = MPI_Wtime();
 		mkl_dcsrmv(&transa, &len, &gram_size, &one, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], del_w, &one, alpha);
 		//dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_w, &incx, &one, alpha, &incx);
+		if(iter/freq == rescnt){
+			//std::cout << "len = " << len << " m = " << m << " n = " << n  << " rowidx[m]" << rowidx[m] << " y.size() " << y.size() << std::endl;
+			mkl_dcsrmv(&transb, &len, &n, &neg_alp, matdesc, &vals[0], &colidx[0], &rowidx[0], &rowidx[1], alpha, &zero, sampres);
+			mkl_dcsrmv(&transb, &len, &n, &alp, matdesc, &vals[0], &colidx[0], &rowidx[0], &rowidx[1], &y[0], &one, sampres);
+
+			MPI_Allreduce(sampres, sampres_sum, n, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+			daxpy(&n, &neg_lambda, w, &incx, sampres_sum, &incx);
+			resnrm = dnrm2(&n, sampres_sum, &incx);
+			rescnt++;
+			if(resnrm <= tol){
+					free(alpha); free(G); free(recvG);
+					free(index); free(del_w); free(wsamp); free(sampres);
+					samprowidx.clear(); sampcolidx.clear(); sampvals.clear(); //sampres.clear();
+					MPI_Reduce(&gramagg, &grammax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+					MPI_Reduce(&inneragg, &innermax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+					MPI_Reduce(&commagg, &commmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+					if(rank == 0){
+						std::cout << "CA-BCD converged with residual: " << std::scientific << resnrm << std::setprecision(4) << std::fixed << " At outer iteration: " << iter/s << std::endl;
+						std::cout << "Outer loop computation time: " << grammax*1000 << " ms" << std::endl;
+						std::cout << "Inner loop computation time: " << innermax*1000 << " ms" << std::endl;
+						std::cout << "MPI_Allreduce time: " << commmax*1000 << " ms" << std::endl;
+					}
+					return;
+			
+			}
+		}
 		gramagg += MPI_Wtime() - gramst;
 
 
@@ -443,7 +488,7 @@ int main (int argc, char* argv[])
 		if(rank == 0)
 		{
 			std::cout << "Bad args list!" << std::endl;
-			std::cout << argv[0] << " [filename] [rows] [cols] [lambda] [maxit] [tol] [seed] [freq] [block size] [loop block size]" << std::endl;
+			std::cout << argv[0] << " [filename] [rows] [cols] [lambda] [maxit] [tol] [seed] [freq] [block size] [loop block size] [number of benchmark iterations] [frequency of residual computation]" << std::endl;
 		}
 
 		MPI_Finalize();
@@ -469,7 +514,11 @@ int main (int argc, char* argv[])
 	std::vector<double> y, vals;
 
 	int dual_method = 0;
-	parse_lines_to_csr(lines, rowidx, colidx, vals, y, dual_method);
+	parse_lines_to_csr(lines, rowidx, colidx, vals, y, dual_method, m, n);
+	//std::cout << y.size() << std::endl;
+	//	for(int i = 0; i < y.size(); ++i)
+	//		std::cout << y[i] << " ";
+	//	std::cout << std::endl;
 		/*
 		for(int i = 0; i < y.size(); ++i)
 			std::cout << y[i] << ' ';
@@ -513,27 +562,27 @@ int main (int argc, char* argv[])
 	}
 	*/
 	MPI_Barrier(MPI_COMM_WORLD);
-	if(rank == 0)
+	/*if(rank == 0)
 		std::cout << "Starting warm-up call" << std::endl;
 	cabcd(rowidx, colidx, vals, m, n, y, y.size(), lambda, s, b, maxit, tol, seed, freq, w, comm);
 	if(rank == 0){
 		std::cout << "w = ";
 		for(int i = 0; i < n; ++i)
-			std::cout << std::setprecision(4) << std::fixed << w[i] << " ";
+			std::cout << std::setprecision(16) << std::fixed << w[i] << " ";
 		std::cout << std::endl;
-	}
+	}*/
 
 	s = 1;
-	for(int k = 0; k < 4; ++k){
+	b = 1;
+	for(int k = 0; k < 2; ++k){
 		if(b > n)
 			continue;
-		for(int j = 0; j < 7; ++j){
+		for(int j = 0; j < 6; ++j){
 			if(rank == 0){
 				std::cout << std::endl << std::endl;
 				std::cout << "s = " << s << ", " << "b = " << b << std::endl;
 			}
-			//cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
-			cabcd(rowidx, colidx, vals, m, n, y, y.size(), lambda, s, b, maxit, tol, seed, freq, w, comm);
+			//cabcd(rowidx, colidx, vals, m, n, y, y.size(), lambda, s, b, maxit, tol, seed, freq, w, comm);
 			algst = MPI_Wtime();
 			for(int i = 0; i < niter; ++i){
 				//cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
@@ -551,12 +600,17 @@ int main (int argc, char* argv[])
 			double algmaxt = 1000*(algstp - algst)/niter;
 			//double algmax;
 			//MPI_Reduce(&algmaxt, &algmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-			if(rank == 0)
+			if(rank == 0){
 				std::cout << std::endl << "Total CA-BCD time: " << algmaxt << " ms" << std::endl;
+				//std::cout << "w = ";
+				//for(int i = 0; i < n; ++i)
+				//	std::cout << std::setprecision(16) << std::fixed << w[i] << " ";
+				//std::cout << std::endl;
+			}
 			s *= 2;
 		}
 		s = 1;
-		b *= 2;
+		b *= 8;
 	}
 	/*
 	if(rank == 0){
