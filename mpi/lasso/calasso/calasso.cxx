@@ -52,6 +52,7 @@ void calasso(			std::vector<int> &rowidx,
 	assert(0==Malloc_aligned(double, alpha, n, ALIGN));
 	assert(0==Malloc_aligned(double, talpha, len, ALIGN));
 	assert(0==Malloc_aligned(double, tw, len, ALIGN));
+	assert(0==Malloc_aligned(double, sampres, len, ALIGN));
 
 	assert(0==Malloc_aligned(double, G, gram_size*(gram_size + 2), ALIGN));
 	assert(0==Malloc_aligned(double, recvG, s*b*(s*b + 2), ALIGN));
@@ -63,7 +64,6 @@ void calasso(			std::vector<int> &rowidx,
 	assert(0==Malloc_aligned(int, index, s, ALIGN));
 	assert(0==Malloc_aligned(double, theta, s+1, ALIGN));
 	assert(0==Malloc_aligned(double, c_scal, s, ALIGN));
-	assert(0==Malloc_aligned(double, sampres, n, ALIGN));
 	assert(0==Malloc_aligned(double, sampres_sum, n, ALIGN));
 	
 	theta[0] = 1./(double)nblks;
@@ -78,13 +78,14 @@ void calasso(			std::vector<int> &rowidx,
 	memset(w, 0, sizeof(double)*n);
 	memset(wsamp, 0, sizeof(double)*s*b);
 	memset(talpha, 0, sizeof(double)*len);
+	memset(tw, 0, sizeof(double)*len);
 
 	char transa = 'N', transb = 'T', uplo = 'U';
 	double alp = 1./m;
 	double one = 1., zero = 0., neg = -1.;
 	double neg_lambda = -lambda;
 	double neg_alp = -alp;
-	double resnrm = 1.;
+	double resdot = 0., recvresdot = 0.;
 	int info, nrhs = 1;
 	int lGcols = b;
 	char matdesc[6];
@@ -117,7 +118,8 @@ void calasso(			std::vector<int> &rowidx,
 	while(1){
 		//std::cout << iter << std::endl;
 		gramst = MPI_Wtime();
-		std::cout << "Choosing the following blocks: ";
+		//if(rank == 0)
+		//std::cout << "Choosing the following blocks: ";
 		cursamp = 0;
 		count = 0;
 		while(cursamp < s){
@@ -127,9 +129,11 @@ void calasso(			std::vector<int> &rowidx,
 			}
 			index[cursamp] = count;
 			cursamp++;
-			std::cout << count << ' ';
+			//if(rank == 0)
+			//std::cout << count << ' ';
 		}
-		std::cout << std::endl << " Finished selecting blocks" << std::endl;
+		//if(rank == 0)
+		//std::cout << std::endl << " Finished selecting blocks" << std::endl;
 
 
 		for(int i = 1; i < rowidx.size(); ++i){
@@ -162,35 +166,25 @@ void calasso(			std::vector<int> &rowidx,
 						samprowidx[i]++;
 					}
 					padded_blks[k] = 1;
-					std::cout << " Just padded block: " << k << std::endl;
+					//std::cout << " Just padded block: " << k << std::endl;
 				}
 			}
 		}
-		std::cout << "Computing Gram matrix" << std::endl;
+		//std::cout << "Computing Gram matrix" << std::endl;
 		if(s > 1){
 			/** Need to compute off-diagonal blocks of Gram matrix (This is unoptimized... currently computing the full Gram matrix.) **/
 			mkl_dcsrmultd(&transb, &len, &gram_size, &gram_size, &sampvals[0], &sampcolidx[0], &samprowidx[0],  &sampvals[0], &sampcolidx[0], &samprowidx[0], G, &gram_size);
 
 			mkl_dcsrmv(&transb, &len, &gram_size, &one, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], tw, &zero, G+(s*b*s*b));
 			mkl_dcsrmv(&transb, &len, &gram_size, &one, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], talpha, &zero, G+(s*b*(s*b+1)));
-			for(int i = 0; i < s; ++i){
-				c = theta[i]*theta[i];
-				daxpy(&b, &c, G+ngram+(s*b)+(i*b), &incx, G+ngram+(i*b), &incx);
-				theta[i+1] = (sqrt((c*c) + (4*c)) - c)/2;
-				c_scal[i] = (1. - (double)nblks*theta[i])/theta[i]/theta[i];
-			}
-			
 			gramstp = MPI_Wtime();
 			gramagg += gramstp - gramst;
-
 			commst = MPI_Wtime();
-			MPI_Allreduce(G, recvG, ngram + s*b, MPI_DOUBLE, MPI_SUM, comm);
+			MPI_Allreduce(G, recvG, ngram + 2*s*b, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 			commstp = MPI_Wtime();
 			commagg += commstp - commst;
-
-			innerst = MPI_Wtime();
-			//daxpy(&gram_size, &one, recvG+ngram+s*b, &incx, recvG+ngram, &incx);
-			std::cout << std::setprecision(8) << std::fixed;
+			std::cout << std::setprecision(20) << std::fixed;
+			/*
 			if(rank == 0){
 				std::cout << "recvG = " << std::endl;
 				for(int i =0; i < gram_size; ++i){
@@ -202,41 +196,60 @@ void calasso(			std::vector<int> &rowidx,
 				std::cout << std::endl;
 
 			}
+			*/
+			innerst = MPI_Wtime();
+			for(int i = 0; i < s; ++i){
+				c = theta[i]*theta[i];
+				//if(rank == 0)
+				//	std::cout << "theta[" << i << "] = " << theta[i] << std::endl;
+				daxpy(&b, &c, recvG+ngram+(s*b)+(i*b), &incx, recvG+ngram+(i*b), &incx);
+				theta[i+1] = (sqrt((c*c) + (4*c)) - c)/2;
+				c_scal[i] = (1. - (double)nblks*theta[i])/theta[i]/theta[i];
+			}
+			
+
+
+			//daxpy(&gram_size, &one, recvG+ngram+s*b, &incx, recvG+ngram, &incx);
 			dcopy(&gram_size, recvG + ngram, &incx, res, &incx);
+			/*
 			if(rank == 0){
 				std::cout << "Residual = " << std::endl;
 				for(int i = 0; i < gram_size; ++i)
 					std::cout << res[i] << ' ';
 				std::cout << std::endl;
 			}
+			*/
 		}
 		else{
 			/** Since the Lipschitz constants are pre-coumpted we only need to compute the residual. **/
-			std::cout << "Here " << std::endl;
 			mkl_dcsrmv(&transb, &len, &gram_size, &one, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], tw, &zero, G);
 			mkl_dcsrmv(&transb, &len, &gram_size, &one, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], talpha, &zero, G+s*b);
-			c = theta[0]*theta[0];
-			daxpy(&gram_size, &c, G+s*b, &incx, G, &incx);
-			theta[s] = (sqrt(c*c + 4*c) - c)/2;
-			c_scal[0] = (1. - (double)nblks*theta[0])/theta[0]/theta[0];
+			std::cout << std::setprecision(20) << std::fixed;
 			gramstp = MPI_Wtime();
 			gramagg += gramstp - gramst;
-
+			
 			commst = MPI_Wtime();
-			MPI_Allreduce(G, recvG, s*b, MPI_DOUBLE, MPI_SUM, comm);
+			MPI_Allreduce(G, recvG, 2*s*b, MPI_DOUBLE, MPI_SUM, comm);
 			commstp = MPI_Wtime();
 			commagg += commstp - commst;
-
 			
 			innerst = MPI_Wtime();
-			//daxpy(&gram_size, &one, G+s*b, &incx, G, &incx);
+			c = theta[0]*theta[0];
+			daxpy(&gram_size, &c, recvG+s*b, &incx, recvG, &incx);
+			theta[s] = (sqrt(c*c + 4*c) - c)/2;
+			c_scal[0] = (1. - (double)nblks*theta[0])/theta[0]/theta[0];
 
+
+			
+			//daxpy(&gram_size, &one, G+s*b, &incx, G, &incx);
+			/*
 			if(rank == 0){
 				std::cout << "Residual = " << std::endl;
 				for(int i = 0; i < gram_size; ++i)
 					std::cout << recvG[i] << ' ';
 				std::cout << std::endl;
 			}
+			*/
 
 			dcopy(&gram_size, recvG, &incx, res, &incx);
 		}
@@ -253,19 +266,21 @@ void calasso(			std::vector<int> &rowidx,
 			for(int j = blk_start, k = 0; j < blk_end; ++j, ++k)
 				wsamp[i*b + k] = w[j];
 		}
-		std::cout << "Proc: "<< rank << " theta[0]: " << theta[0] << std::endl;
 
 		dcopy(&gram_size, wsamp, &incx, del_w, &incx); 
 		stepsize = (((-1./((double)nblks))/theta[0])/v[index[0]]);
+		/*
 		if(rank == 0){
-			std::cout << std::setprecision(8) << "Stepsize: " << stepsize << std::endl;
+			std::cout << "Stepsize: " << stepsize << std::endl;
 			std::cout << "theta[0]: " << theta[0] << std::endl;
 			std::cout << "v[index[0]]: " << v[index[0]] << std::endl;
 			
 			std::cout << "Lambda: " << lambda << std::endl;
 		}
+		*/
 		/** Compute the gradient update **/
 		daxpy(&b, &stepsize, res, &incx, del_w, &incx);
+		/*
 		if(rank == 0){
 			std::cout << "Gradient: ";
 			for(int i = 0; i < b; ++i){
@@ -273,19 +288,22 @@ void calasso(			std::vector<int> &rowidx,
 			}
 			std::cout << std::endl;
 		}
+		*/
 		/** Compute the soft-thresholding solution **/
-		if(rank == 0)
-			std::cout << "Solution update: " << std::endl;
+		
+		//if(rank == 0)
+			//std::cout << "Solution update: " << std::endl;
 		for(int i = 0; i < b; ++i){
 			del_w[i] = sign(del_w[i])*max(fabs(del_w[i]) + lambda*stepsize, 0.) - wsamp[i];
-			if(rank == 0)
-				std::cout << del_w[i] << ' ';
+			//if(rank == 0)
+			//	std::cout << del_w[i] << ' ';
 		}
-		if(rank == 0)
-			std::cout << std::endl;
+		//if(rank == 0)
+		//	std::cout << std::endl;
 
 		//combine residual updates into one vector
 
+		/*
 		if(iter == maxit){
 			//gram_size = i*b;
 			//dgemv(&transb, &gram_size, &len, &one, Xsamp, &gram_size, del_w, &incx, &one, alpha, &incx);
@@ -303,14 +321,17 @@ void calasso(			std::vector<int> &rowidx,
 			}
 			return;
 		}
+		*/
 		for(int i = 1; i < s; ++i){
 
 			// Compute residual based on prev
-			stepsize = -1./nblks/theta[i]/v[index[i]];
-			if(rank == 0)
-				std::cout << "inner loop stepsize = " << stepsize << std::endl;
+			stepsize = (((-1./((double)nblks))/theta[i])/v[index[i]]);
+			//if(rank == 0)
+			//	std::cout << "inner loop stepsize = " << stepsize << std::endl;
 			
 			dcopy(&b, res + i*b, &incx, del_w + i*b, &incx);
+			
+			/*
 			if(rank == 0){
 				std::cout << "s-step iteration: " << i << " res = ";
 				for(int j = 0; j < b; ++j){
@@ -318,19 +339,20 @@ void calasso(			std::vector<int> &rowidx,
 				}
 				std::cout << std::endl;
 			}
-			
+			*/
 			for(int j = 0; j < i; ++j){	
 				c = -c_scal[j]*theta[i]*theta[i] + 1.;
 				dgemv(&transb, &b, &b, &c, recvG + s*b*b*i + j*b, &gram_size, del_w + j*b, &incx, &one, del_w + i*b, &incx);
 			}
+			/*
 			if(rank == 0){
 				std::cout << "s-step iteration: " << i << " gemv result = "; 
 				for(int j = 0; j < b; ++j)
 					std::cout << del_w[i*b+ j] << ' ';
 				std::cout << std::endl;
 			}
-
-
+			*/
+			
 			dscal(&b, &stepsize, del_w + i*b, &incx);
 			daxpy(&b, &one, wsamp + i*b, &incx, del_w + i*b, &incx);
 			
@@ -347,16 +369,16 @@ void calasso(			std::vector<int> &rowidx,
 					daxpy(&b, &neg, del_w + j*b, &incx, del_w + i*b, &incx);
 				}
 			}
-
+			/*
 			if(rank == 0){
 				std::cout << "s-step iteration: " << i << " del_w = "; 
 				for(int j = 0; j < b; ++j)
 					std::cout << del_w[i*b+ j] << ' ';
 				std::cout << std::endl;
 			}
-			iter++;
+			*/
 			inneragg += MPI_Wtime() - innerst;
-			if(iter == maxit){
+			/*if(iter == maxit){
 				free(alpha); free(G); free(recvG);
 				free(index); free(del_w); free(wsamp); free(sampres);
 				samprowidx.clear(); sampcolidx.clear(); sampvals.clear(); //sampres.clear();
@@ -370,6 +392,7 @@ void calasso(			std::vector<int> &rowidx,
 				}
 				return;
 			}
+			*/
 		}
 
 
@@ -384,14 +407,82 @@ void calasso(			std::vector<int> &rowidx,
 			daxpy(&blk_len, &one, del_w + i*b, &incx, w + blk_start, &incx);
 			dscal(&b, &c_scal[i], del_w + i*b, &incx);
 			daxpy(&blk_len, &neg, del_w + i*b, &incx, alpha + blk_start, &incx);
-
+			iter++;
 		}
+		
 		mkl_dcsrmv(&transa, &len, &gram_size, &neg, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], del_w, &one, talpha);
+		/*
+		if(rank == 0){
+			std::cout << "Solution w = ";
+			for(int i = 0; i < n; ++i){
+				std::cout << w[i] << ' ';
+			}
+			std::cout << std::endl;
+			std::cout << "Solution alpha = ";
+			for(int i = 0; i < n; ++i){
+				std::cout << alpha[i] << ' ';
+			}
+			std::cout << std::endl;
+			
+			std::cout << "Solution tw = ";
+			for(int i = 0; i < 10; ++i){
+				std::cout << tw[i] << ' ';
+			}
+			std::cout << std::endl;
+			std::cout << "Solution talpha = ";
+			for(int i = 0; i < 10; ++i){
+				std::cout << talpha[i] << ' ';
+			}
+			std::cout << "Iter = " << iter << std::endl;
+		}
+		*/
 		theta[0] = theta[s];
+		/** Remove the comments if we need to print objective value
+		 *
+		if(iter/freq == rescnt){
+			c = theta[0]*theta[0];
+			dcopy(&len, tw, &incx, sampres, &incx);
+			daxpy(&len, &c, talpha, &incx, sampres, &incx);
+			resdot = ddot(&len, sampres, &incx, sampres, &incx);
+			MPI_Reduce(&resdot, &recvresdot, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+			if(rank == 0){
+				recvresdot /= 2.;
+				for(int i = 0; i < n; ++i){
+					recvresdot += lambda*fabs(c*alpha[i] + w[i]); 
+				}
+
+				std::cout << "Iteration: " << iter << " F(x) = " <<  recvresdot << std::endl;
+			}
+			rescnt++;
+		}
+		**/
+		
 		innerstp = MPI_Wtime();
 		inneragg += innerstp - innerst;
-		return;
-
+		if(iter >= maxit){
+			c = theta[0]*theta[0];
+			daxpy(&n, &c, alpha, &incx, w, &incx);
+			if(rank == 0){
+				std::cout << "FINAL SOLUTION: ";
+				for(int i = 0; i < n; ++i)
+					std::cout << w[i] << ' ';
+				std::cout << std::endl;
+			}
+			free(alpha); free(G); free(recvG);
+			free(index); free(del_w); free(wsamp); free(sampres);
+			samprowidx.clear(); sampcolidx.clear(); sampvals.clear(); //sampres.clear();
+			MPI_Reduce(&gramagg, &grammax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+			MPI_Reduce(&inneragg, &innermax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+			MPI_Reduce(&commagg, &commmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+			if(rank == 0){
+				std::cout << "Outer loop computation time: " << grammax*1000 << " ms" << std::endl;
+				std::cout << "Inner loop computation time: " << innermax*1000 << " ms" << std::endl;
+				std::cout << "MPI_Allreduce time: " << commmax*1000 << " ms" << std::endl;
+			}
+			return;
+		}
+		
+		/** Left here from Ridge algorithm
 		gramst = MPI_Wtime();
 		mkl_dcsrmv(&transa, &len, &gram_size, &one, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], del_w, &one, alpha);
 		if(iter/freq == rescnt){
@@ -422,13 +513,14 @@ void calasso(			std::vector<int> &rowidx,
 		}
 		gramagg += MPI_Wtime() - gramst;
 
-
+		**/
 
 		sampcolidx.clear(); sampvals.clear(); //sampres.clear();
 		samprowidx[0] = 1;
 		memset(G, 0, sizeof(double)*gram_size*(gram_size+2));
 		memset(recvG, 0, sizeof(double)*gram_size*(gram_size+2));
 		memset(del_w, 0, sizeof(double)*gram_size);
+		memset(wsamp, 0, sizeof(double)*gram_size);
 		/*
 		 * End Inner s-step loop
 		*/
