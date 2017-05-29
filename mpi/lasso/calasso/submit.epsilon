@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH -J epsilon_     # job name
+#SBATCH -o epsilon_12288.log       # output and error file name (%j expands to jobID)
+#SBATCH -N 512    # total number of mpi tasks requested
+#SBATCH -p debug    # queue (partition) -- debug, regular, etc.
+#SBATCH -t 00:30:00        # run time (hh:mm:ss) - 1.5 hours
+#SBATCH -A mp156
+#SBATCH -L SCRATCH
+#SBATCH --mail-user=aditya08@berkeley.edu
+#SBATCH --mail-type=end    # email me when the job finishes
+
+srun -n 12288 ./calasso ../../../data/epsilon.txt 400000 2000 .0001 2000000 100 10 512 1 1 1 1

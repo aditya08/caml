@@ -20,7 +20,8 @@
 					int freq,
 					double *w,
 					double *v,
-					MPI_Comm comm);
+					MPI_Comm comm,
+					double theta_start);
 
 inline double sign(double x){return (x > 0.) ? 1. : ((x < 0.) ? -1. : 0.);}
 inline double max(double x, double y){return (x > y) ? x : y;}

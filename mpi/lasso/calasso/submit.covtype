@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH -J covtype_768_smallblksize_mores     # job name
+#SBATCH -o covtype_768_smallblksize_mores.log       # output and error file name (%j expands to jobID)
+#SBATCH -N 32    # total number of mpi tasks requested
+#SBATCH -p debug    # queue (partition) -- debug, regular, etc.
+#SBATCH -t 00:20:00        # run time (hh:mm:ss) - 1.5 hours
+#SBATCH -A mp156
+#SBATCH -L SCRATCH
+#SBATCH --mail-user=aditya08@berkeley.edu
+#SBATCH --mail-type=end    # email me when the job finishes
+
+srun -n 768 ./calasso ../../../data/covtype.txt 581012 54 .0001 2000000 5 10 512 1 1 1 1

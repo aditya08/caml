@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH -J news20_192      # job name
+#SBATCH -o news20_192.log       # output and error file name (%j expands to jobID)
+#SBATCH -N 8    # total number of mpi tasks requested
+#SBATCH -p debug    # queue (partition) -- debug, regular, etc.
+#SBATCH -t 00:30:00        # run time (hh:mm:ss) - 1.5 hours
+#SBATCH -A mp156
+#SBATCH -L SCRATCH
+#SBATCH --mail-user=aditya08@berkeley.edu
+#SBATCH --mail-type=end    # email me when the job finishes
+
+srun -n 192 ./calasso ../../../data/news20.txt 15935 62061 .001 2000000 100 10 131072 1 1 1 1
