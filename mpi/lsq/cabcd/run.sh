@@ -1,3 +1,7 @@
+srun -n 24 --cpu-freq=2400000 ./cabcd ../../../data/a9a.txt 32561 123 .001 65536 1e-3 10 512 1 1 1 2>&1 | tee a9a_24_nominal.log
+srun -n 24 ./cabcd ../../../data/a9a.txt 32561 123 .001 65536 1e-3 10 512 1 1 1 2>&1 | tee a9a_24_TB.log
+srun -n 24 --cpu-freq=3200000 ./cabcd ../../../data/a9a.txt 32561 123 .001 65536 1e-3 10 512 1 1 1 2>&1 | tee a9a_24_peak.log
+
 #!/bin/bash
 
 #printf "Number of processors: "
@@ -40,7 +44,3 @@
 #read niters
 
 #OUT=`srun -n $P --cpu-freq=2200000 ./cabcd $fname  $n $m $lambda $maxit $tol $seed $freq $blk $s $niters`
-
-srun -n $1 -N ${13} --cpu-freq=2200000 ./cabcd $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12}
-#sed 's/.*: \(.*\)\n/\1/g' << $OUT
-#echo $OUT

@@ -3,8 +3,8 @@ OPT = -O3  -unroll-aggressive -qopt-prefetch
 CXXFLAGS = -Wall -g $(OPT) -I../../util 
 LDLIBS = -lrt -qopenmp -mkl -L../../util/libutil.a
 
-targets =	cabcd_uniquecols cabcd
-objects =	cabcd_uniquecols.o cabcd.o
+targets =	cabcd
+objects =	cabcd.o
 
 .PHONY : default
 default : all
