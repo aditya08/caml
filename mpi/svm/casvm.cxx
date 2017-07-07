@@ -11,6 +11,7 @@ Redistribution and use in source and binary forms, with or without modification,
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 **************************************/
+
 #include <iostream>
 #include <mkl.h>
 #include "mpi.h"
@@ -46,42 +47,59 @@ void casvm(				std::vector<int> &rowidx,
 	MPI_Comm_rank(comm, &rank);
 
 
-	double *del_alp, *G, *recvG, *res, *wsamp;
-	double *alpha, *grad, *proj_grad, *theta;
+	double *del_alp, *G, *recvG, *res, *wsamp, *tmpalp, *tmpy;
+	double *alpha, *grad, *proj_grad, *theta, *tildew, *tildewsum;
 	int *index;
 	assert(0 == Malloc_aligned(double, del_alp, s, ALIGN));
 	assert(0 == Malloc_aligned(double, G, s*(s + 2), ALIGN));
 	assert(0 == Malloc_aligned(double, recvG, s*(s + 2), ALIGN));
 	assert(0 == Malloc_aligned(double, res, s, ALIGN));
-	assert(0 == Malloc_aligned(double, wsamp, s, ALIGN));
+	assert(0 == Malloc_aligned(double, tmpalp, s, ALIGN));
+	assert(0 == Malloc_aligned(double, tmpy, s, ALIGN));
 	assert(0 == Malloc_aligned(double, alpha, n, ALIGN));
+	assert(0 == Malloc_aligned(double, tildew, n, ALIGN));
+	assert(0 == Malloc_aligned(double, tildewsum, n, ALIGN));
 	assert(0 == Malloc_aligned(double, grad, s, ALIGN));
 	assert(0 == Malloc_aligned(double, proj_grad, s, ALIGN));
 	assert(0 == Malloc_aligned(double, theta, s, ALIGN));
 	assert(0 == Malloc_aligned(int, index, s, ALIGN));
 
+	if(rank == 0)
+		std::cout << "matrix dimensions: " << m << " x " << n << std::endl;
+	//std::cout << "nrows = " << len << std::endl;
+	//std::cout << "rowidx = " << rowidx.size() - 1 << std::endl;
+
+
+	std::fill(w, w+len, 0.);
+	std::fill(alpha, alpha + n, 0.);
+	std::fill(G, G + (s*s + s), 0.);
+	std::fill(recvG, recvG + (s*s + s), 0.);
+	
+	/*
 	memset(w, 0, sizeof(double)*len);
 	memset(alpha, 0, sizeof(double)*n);
 	memset(G, 0, sizeof(double)*s*(s + 1));
 	memset(recvG, 0, sizeof(double)*s*(s + 1));
+	*/
 
 	char transa = 'N', transb = 'T', uplo = 'U';
 	char matdesc[6];
-	double one = 1.;
+	double one = 1., zero = 0.;
+	int incx = 1, rescnt = 0;
 	matdesc[0] = 'G'; matdesc[3] = 'F';
 	srand48(seed);
 	
-	double commst, commstp, commagg = 0.;
-	double gramst, gramstp, gramagg = 0.;
-	double resst, resstp, resagg = 0.;
-	double innerst, innerstp, inneragg = 0.;
-	double matcpyst, matcpystp, matcpyagg = 0.;
+	double commst, commstp, commmax, commagg = 0.;
+	double gramst, gramstp, grammax, gramagg = 0.;
+	double resst, resstp, resmax, resagg = 0.;
+	double innerst, innerstp, innermax, inneragg = 0.;
+	double matcpyst, matcpystp, matcpymax, matcpyagg = 0.;
 	
 	int iter = 0;
 
 	int cursamp, count;
 	int cidx = 0;
-	double tval = 0., tmpy = 0., tmpalp =0.;
+	double tval = 0., gradcorr = 0.;
 
 	std::vector<int> samprowidx(rowidx.size(), 1);
 	std::vector<int> sampcolidx;
@@ -99,13 +117,14 @@ void casvm(				std::vector<int> &rowidx,
 					++count;
 				else{
 					index[cursamp] = count;
-					//if(rank == 0)
-						//std::cout << count << ' ';
+					//index[cursamp] = iter%n;
 					++count; ++cursamp;
 				}
 			}
-			tmpalp = alpha[index[0]];
-			tmpy = y[index[0]];
+			//if(rank == 0)
+			//	std::cout << "Chosen index: " << index[0] << std::endl;
+			tmpalp[0] = alpha[index[0]];
+			tmpy[0] = y[index[0]];
 			for(int i = 1; i < rowidx.size(); ++i){
 				samprowidx[i] = samprowidx[i-1];
 				for(int j = rowidx[i-1]-1; j < rowidx[i]-1; ++j){
@@ -115,7 +134,7 @@ void casvm(				std::vector<int> &rowidx,
 						/*Compute the dot-products right now*/
 						gramst = MPI_Wtime();
 						G[0] += tval*tval;
-						G[1] += tval*w[j];
+						G[1] += tval*w[i-1];
 						gramstp = MPI_Wtime();
 						gramagg += gramstp - gramst;
 						/*Store the column of A for the axpy to update w later.*/
@@ -125,9 +144,11 @@ void casvm(				std::vector<int> &rowidx,
 					}
 				}
 			}
+
+			//std::cout << std::endl;
 			/*Count only the time for the sampling + matrix copy.*/
 			matcpystp = MPI_Wtime();
-			matcpyagg += (matcpystp - matcpyst) - (gramstp - gramst);
+			matcpyagg += (matcpystp - matcpyst);
 			
 			commst = MPI_Wtime();
 			MPI_Allreduce(G, recvG, 2, MPI_DOUBLE, MPI_SUM, comm);
@@ -146,6 +167,8 @@ void casvm(				std::vector<int> &rowidx,
 						++count;
 					else{
 						index[cursamp + i] = count;
+						tmpy[i] = y[count];
+						tmpalp[i] = alpha[count];
 						//if(rank == 0)
 							//std::cout << count << ' ';
 						++count; ++cursamp;
@@ -171,28 +194,47 @@ void casvm(				std::vector<int> &rowidx,
 			}
 			matcpystp = MPI_Wtime();
 			matcpyagg += matcpystp - matcpyst;
+			
+			gramst = MPI_Wtime();
+			mkl_dcsrmultd(&transb, &len, &s, &s, &sampvals[0], &sampcolidx[0], &samprowidx[0],  &sampvals[0], &sampcolidx[0], &samprowidx[0], G, &s);
+		mkl_dcsrmv(&transb, &len, &s, &one, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], w, &zero, G+s*s);
+			gramstp = MPI_Wtime();
+			gramagg += gramstp - gramst;
+
+			commst = MPI_Wtime();
+			MPI_Allreduce(G, recvG, s*s+s, MPI_DOUBLE, MPI_SUM, comm);
+			commstp = MPI_Wtime();
+			commagg += commstp - commst;
+
 		}
+		//if(rank == 0)
+		//	std::cout << "eta = " << recvG[0]  << " res = " << recvG[1]<< std::endl;
 	
 		innerst = MPI_Wtime();
 		/*Unroll the s-step iterations by 1.*/
-		grad[0]= tmpy*recvG[1] - 1;
+		grad[0]= tmpy[0]*recvG[s*s] - 1;
 
-		proj_grad[0] = fabs(fmin(fmax(tmpalp - grad[0], 0.0), lambda) - tmpalp);
-
-		if(proj_grad[0] <= 1e-14)
-			theta[0] = fmin(fmax(tmpalp - grad[0]/recvG[0], 0.0), lambda) - tmpalp;
+		proj_grad[0] = fabs(fmin(fmax(tmpalp[0] - grad[0], 0.0), lambda) - tmpalp[0]);
+		
+		if(proj_grad[0] > 1e-14)
+			theta[0] = fmin(fmax(tmpalp[0] - grad[0]/recvG[0], 0.0), lambda) - tmpalp[0];
 		else
 			theta[0] = 0.;
 
+		
+		//if(rank == 0)
+		//	std::cout << "Gradient = " << grad[0]  << " projected_Gradient = " << proj_grad[0] << " theta = " << theta[0] << std::endl;
+
+
 		/*Update coordinate of alpha*/
 		alpha[index[0]] += theta[0];
-		
+		theta[0] *= tmpy[0];
 		/*Update all of w, iff s = 1*/
 		if(s == 1){
 			for(int i = 1; i < samprowidx.size(); ++i){
 				//std::cout << samprowidx.size()<< std::endl;
 				for(int j = samprowidx[i-1]-1; j < samprowidx[i]-1; ++j){
-					 w[i-1] += theta[0]*tmpy*vals[j];
+					 w[i-1] += theta[0]*tmpy[0]*sampvals[j];
 				}
 			}
 		}
@@ -200,31 +242,120 @@ void casvm(				std::vector<int> &rowidx,
 		iter++;
 
 		/*perform remaining s-step loop if required*/
-		for(int j = 1; j < s; ++j){
+		for(int i = 1; i < s; ++i){
+			grad[i] = tmpy[i]*recvG[s*s + i] - 1;
+
+			for(int j = 0; j < i; ++j){
+				gradcorr += recvG[i*s + j]*theta[j];
+			}
+
+			grad[i] += gradcorr*tmpy[i];
+
+			for(int j = 0; j < i; ++j){
+				if(index[i] == index[j]){
+					tmpalp[i] += theta[j];
+				}
+			}
+
+			proj_grad[i] = fabs(fmin(fmax(tmpalp[i] - grad[i], 0.0), lambda) - tmpalp[i]);
+			if(proj_grad[i] > 1e-14)
+				theta[i] = fmin(fmax(tmpalp[i] - grad[i]/recvG[s*i + i], 0.0), lambda) - tmpalp[i];
+			else
+				theta[i] = 0.;
+			alpha[index[i]] += theta[i];
+			theta[i] *= tmpy[i];
 			iter++;
 		}
 		innerstp = MPI_Wtime();
 		inneragg += innerstp - innerst;
+		if(s > 1){
+			mkl_dcsrmv(&transa, &len, &s, &one, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], theta, &one, w);
+		}
+
+		if(iter/freq == rescnt){
+			
+			/*Compute duality gap and print from rank 0.*/
+			double primal = 0., dual = 0.;
+			double primalsum = 0., dualsum = 0.;
+			dual = ddot(&len, w, &incx, w, &incx);
+			MPI_Allreduce(&dual, &dualsum, 1, MPI_DOUBLE, MPI_SUM, comm);
+			/*Compute the dual objective value.*/
+			dual = dualsum;
+			for(int i = 0; i < n; ++i){
+				dual += -2.*alpha[i];
+			}
+
+			dual /= 2.;
+
+			/*Compute the primal objective value.*/
+			mkl_dcsrmv(&transb, &len, &n, &one, matdesc, &vals[0], &colidx[0], &rowidx[0], &rowidx[1], w, &zero, tildew);
+			MPI_Allreduce(tildew, tildewsum, n, MPI_DOUBLE, MPI_SUM, comm);
+			for(int i = 0; i < n; ++i){
+				primal = 1 - tildewsum[i]*y[i];
+				if(primal > 0.)
+					primalsum += primal;
+			}
+
+			primalsum += dualsum/2.;
+			if(rank == 0)
+				std::cout << std::scientific << std::setprecision(6) << "D(x) = " << dual << " P(x) = " << primalsum << " Gap = " << primalsum + dual << std::endl;
+			if(primalsum + dual <= tol){
+				free(alpha); free(G); free(recvG); free(index);
+				free(del_alp); free(theta); free(proj_grad); free(grad);
+				samprowidx.clear(); sampcolidx.clear(); sampvals.clear(); //sampres.clear();
+				MPI_Reduce(&gramagg, &grammax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+				MPI_Reduce(&inneragg, &innermax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+				MPI_Reduce(&commagg, &commmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+				MPI_Reduce(&matcpyagg, &matcpymax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+				
+				if(rank == 0){
+					std::cout << "Sampling and extraction time: " << std::setprecision(3) << std::fixed << (matcpymax-grammax)*1000 << " ms" << std::endl;
+					std::cout << "Gram Matrix computation time: " << grammax*1000 << " ms" << std::endl;
+					std::cout << "Inner loop computation time: " << innermax*1000 << " ms" << std::endl;
+					std::cout << "MPI_Allreduce time: " << commmax*1000 << " ms" << std::endl;
+				}
+				
+				return;
+			}
+			rescnt++;
+		}
+
+		if(iter == maxit){
+			/*Compute duality gap*/
+			
+			free(alpha); free(G); free(recvG); free(index);
+			free(del_alp); free(theta); free(proj_grad); free(grad);
+			samprowidx.clear(); sampcolidx.clear(); sampvals.clear(); //sampres.clear();
+			MPI_Reduce(&gramagg, &grammax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+			MPI_Reduce(&inneragg, &innermax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+			MPI_Reduce(&commagg, &commmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+			MPI_Reduce(&matcpyagg, &matcpymax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+			
+			if(rank == 0){
+				std::cout << "Sampling and extraction time: " << std::setprecision(3) << std::fixed << (matcpymax-grammax)*1000 << " ms" << std::endl;
+				std::cout << "Gram Matrix computation time: " << grammax*1000 << " ms" << std::endl;
+				std::cout << "Inner loop computation time: " << innermax*1000 << " ms" << std::endl;
+				std::cout << "MPI_Allreduce time: " << commmax*1000 << " ms" << std::endl;
+			}
+			return;
+		}
+
+
 		
-		gramst = MPI_Wtime();
-		if(s > 1)
-		mkl_dcsrmv(&transa, &len, &s, &one, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], theta, &one, w);
-
-		gramstp = MPI_Wtime();
-		gramagg += gramstp - gramst;
-
 		sampcolidx.clear(); sampvals.clear();
 		samprowidx[0] = 1;
 
-		memset(G, 0, sizeof(double)*s*(s + 1));
-		memset(recvG, 0, sizeof(double)*s*(s + 1));
+		std::fill(G, G + (s*s + s), 0.);
+		std::fill(recvG, recvG + (s*s + s), 0.);
+		//memset(G, 0, sizeof(double)*s*(s + 1));
+		//memset(recvG, 0, sizeof(double)*s*(s + 1));
 	}
 }
 
 
 
 
-int main (int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 	MPI_Init(&argc, &argv);
 	int npes, rank;
@@ -251,6 +382,9 @@ int main (int argc, char* argv[])
 		return -1;
 	}
 
+	if(rank == 0)
+		std::cout << "Started args parsing" << std::endl;
+
 	fname = argv[1];
 	m = atoi(argv[2]);
 	n = atoi(argv[3]);
@@ -263,16 +397,23 @@ int main (int argc, char* argv[])
 	b = atoi(argv[9]);
 	s = atoi(argv[10]);
 	int niter = atoi(argv[11]);
-	int flag = atoi(argv[12]);
 
 	int sorig = s;
+	if(rank == 0)
+		std::cout << "Started reading" << std::endl;
 	std::string lines = libsvmread(fname, m, n);
+	if(rank == 0)
+		std::cout << "Finished reading" << std::endl;
 
 	std::vector<int> rowidx, colidx;
 	std::vector<double> y, vals;
 
 	int dual_method = 0;
+	if(rank == 0)
+		std::cout << "Started Parsing" << std::endl;
 	parse_lines_to_csr(lines, rowidx, colidx, vals, y, dual_method, m, n);
+	if(rank == 0)
+		std::cout << "Finished Parsing" << std::endl;
 	std::vector<int> ylen(npes,0);
 	std::vector<int> ydispl(npes,0);
 	ylen[rank] = y.size();
@@ -316,21 +457,21 @@ int main (int argc, char* argv[])
 	int ncols = rowidx.size()-1;
 	assert(0==Malloc_aligned(double, w, ncols, ALIGN));
 	
-	int s_lim = 9;
+	int s_lim = 1;
 	std::cout << std::setprecision(4) << std::fixed;
 	
 	s = 1;
 	for(int j = 0; j <s_lim; ++j){
 		if(rank == 0){
 			std::cout << std::endl << std::endl;
-			std::cout << "s = " << s << ", " << "b = " << b << std::endl;
+			std::cout << "s = " << s << std::endl;
 		}
 		//cabcd(rowidx, colidx, vals, m, n, y, y.size(), lambda, s, b, maxit, tol, seed, freq, w, comm);
 		//MPI_Barrier(MPI_COMM_WORLD);
 		algst = MPI_Wtime();
 		for(int i = 0; i < niter; ++i){
 			//cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
-			casvm(rowidx, colidx, vals, m, n, y, y.size(), lambda, s, maxit, tol, seed, freq, w,comm);
+			casvm(rowidx, colidx, vals, m, n, y, ncols, lambda, s, maxit, tol, seed, freq, w,comm);
 		}
 		algstp = MPI_Wtime();
 		double algmaxt = 1000*(algstp - algst)/niter;
@@ -339,8 +480,8 @@ int main (int argc, char* argv[])
 		MPI_Reduce(&algmaxt, &algmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 		MPI_Reduce(&algmaxt, &algavg, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 		if(rank == 0){
-			std::cout << std::endl << std::setprecision(3) << "Total CA-SVM time (min): " << algmin << " ms" << std::endl;
-			std::cout << std::endl << std::setprecision(3) << "Total CA-SVM time (max): " << algmax << " ms" << std::endl;
+			std::cout << std::endl << std::setprecision(3) << std::fixed << "Total CA-SVM time (min): " << algmin << " ms";
+			std::cout << std::endl << std::setprecision(3) << "Total CA-SVM time (max): " << algmax << " ms";
 			std::cout << std::endl << std::setprecision(3) << "Total CA-SVM time (mean): " << algavg/npes << " ms" << std::endl;
 		}
 		//MPI_Barrier(MPI_COMM_WORLD);
