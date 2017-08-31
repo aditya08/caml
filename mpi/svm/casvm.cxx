@@ -457,7 +457,7 @@ int main(int argc, char* argv[])
 	int ncols = rowidx.size()-1;
 	assert(0==Malloc_aligned(double, w, ncols, ALIGN));
 	
-	int s_lim = 1;
+	int s_lim = 7;
 	std::cout << std::setprecision(4) << std::fixed;
 	
 	s = 1;
