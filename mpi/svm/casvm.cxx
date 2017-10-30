@@ -64,11 +64,13 @@ void casvm(				std::vector<int> &rowidx,
 	assert(0 == Malloc_aligned(double, theta, s, ALIGN));
 	assert(0 == Malloc_aligned(int, index, s, ALIGN));
 
-	if(rank == 0)
+	if(rank == 0){
 		std::cout << "matrix dimensions: " << m << " x " << n << std::endl;
+		std::cout << "labels dimension: " << y.size() << std::endl;
+	}
 	//std::cout << "nrows = " << len << std::endl;
 	//std::cout << "rowidx = " << rowidx.size() - 1 << std::endl;
-
+	
 
 	std::fill(w, w+len, 0.);
 	std::fill(alpha, alpha + n, 0.);
@@ -104,7 +106,15 @@ void casvm(				std::vector<int> &rowidx,
 	std::vector<int> samprowidx(rowidx.size(), 1);
 	std::vector<int> sampcolidx;
 	std::vector<double> sampvals;
-	
+	/*
+	if(rank == 0){
+		std::cout << "y = ";
+		for(int i = 0; i < n; ++i){
+			std::cout << y[i] << ' ';
+		}
+		std::cout << std::endl;
+	}
+	*/
 	while(1){
 		
 		/*only need dot-product, so don't copy anything.*/
@@ -152,6 +162,12 @@ void casvm(				std::vector<int> &rowidx,
 			
 			commst = MPI_Wtime();
 			MPI_Allreduce(G, recvG, 2, MPI_DOUBLE, MPI_SUM, comm);
+			/*
+			if(rank == 0){
+				std::cout << "recvG[0] = " << recvG[0] << std::endl;
+				std::cout << "recvG[1] = " << recvG[1] << std::endl;
+			}
+			*/
 			commstp = MPI_Wtime();
 			commagg += commstp - commst;
 		}
@@ -229,20 +245,25 @@ void casvm(				std::vector<int> &rowidx,
 		/*Update coordinate of alpha*/
 		alpha[index[0]] += theta[0];
 		theta[0] *= tmpy[0];
+		
+		//std::cout << "theta[0] = " << theta[0] << std::endl;
+
 		/*Update all of w, iff s = 1*/
+		/*
 		if(s == 1){
 			for(int i = 1; i < samprowidx.size(); ++i){
 				//std::cout << samprowidx.size()<< std::endl;
 				for(int j = samprowidx[i-1]-1; j < samprowidx[i]-1; ++j){
-					 w[i-1] += theta[0]*tmpy[0]*sampvals[j];
+					 w[i-1] += theta[0]*sampvals[j];
 				}
 			}
 		}
-
+		*/
 		iter++;
 
 		/*perform remaining s-step loop if required*/
 		for(int i = 1; i < s; ++i){
+			gradcorr = 0.;
 			grad[i] = tmpy[i]*recvG[s*s + i] - 1;
 
 			for(int j = 0; j < i; ++j){
@@ -253,7 +274,7 @@ void casvm(				std::vector<int> &rowidx,
 
 			for(int j = 0; j < i; ++j){
 				if(index[i] == index[j]){
-					tmpalp[i] += theta[j];
+					tmpalp[i] += theta[j]/tmpy[j];
 				}
 			}
 
@@ -265,16 +286,43 @@ void casvm(				std::vector<int> &rowidx,
 			alpha[index[i]] += theta[i];
 			theta[i] *= tmpy[i];
 			iter++;
+			if(iter == maxit){
+				/*Compute duality gap*/
+				
+				free(alpha); free(G); free(recvG); free(index);
+				free(del_alp); free(theta); free(proj_grad); free(grad);
+				samprowidx.clear(); sampcolidx.clear(); sampvals.clear(); //sampres.clear();
+				MPI_Reduce(&gramagg, &grammax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+				MPI_Reduce(&inneragg, &innermax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+				MPI_Reduce(&commagg, &commmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+				MPI_Reduce(&matcpyagg, &matcpymax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+				
+				if(rank == 0){
+					if(s == 1)
+						std::cout << "Sampling and extraction time: " << std::setprecision(3) << std::fixed << (matcpymax-grammax)*1000 << " ms" << std::endl;
+					else
+						std::cout << "Sampling and extraction time: " << std::setprecision(3) << std::fixed << (matcpymax)*1000 << " ms" << std::endl;
+					std::cout << "Gram Matrix computation time: " << grammax*1000 << " ms" << std::endl;
+					std::cout << "Inner loop computation time: " << innermax*1000 << " ms" << std::endl;
+					std::cout << "MPI_Allreduce time: " << commmax*1000 << " ms" << std::endl;
+				}
+				return;
+			}
 		}
 		innerstp = MPI_Wtime();
 		inneragg += innerstp - innerst;
-		if(s > 1){
-			mkl_dcsrmv(&transa, &len, &s, &one, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], theta, &one, w);
-		}
+		//if(s > 1){
+		gramst = MPI_Wtime();	
+		mkl_dcsrmv(&transa, &len, &s, &one, matdesc, &sampvals[0], &sampcolidx[0], &samprowidx[0], &samprowidx[1], theta, &one, w);
+		gramstp = MPI_Wtime();
+		gramagg += gramstp - gramst;
+		//}
 
 		if(iter/freq == rescnt){
 			
 			/*Compute duality gap and print from rank 0.*/
+			//if(rank == 0)
+			//	std::cout << std::scientific << std::setprecision(6) << "w[0]" << w[0] << std::endl;
 			double primal = 0., dual = 0.;
 			double primalsum = 0., dualsum = 0.;
 			dual = ddot(&len, w, &incx, w, &incx);
@@ -309,7 +357,10 @@ void casvm(				std::vector<int> &rowidx,
 				MPI_Reduce(&matcpyagg, &matcpymax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 				
 				if(rank == 0){
-					std::cout << "Sampling and extraction time: " << std::setprecision(3) << std::fixed << (matcpymax-grammax)*1000 << " ms" << std::endl;
+					if(s == 1)
+						std::cout << "Sampling and extraction time: " << std::setprecision(3) << std::fixed << (matcpymax-grammax)*1000 << " ms" << std::endl;
+					else
+						std::cout << "Sampling and extraction time: " << std::setprecision(3) << std::fixed << (matcpymax)*1000 << " ms" << std::endl;
 					std::cout << "Gram Matrix computation time: " << grammax*1000 << " ms" << std::endl;
 					std::cout << "Inner loop computation time: " << innermax*1000 << " ms" << std::endl;
 					std::cout << "MPI_Allreduce time: " << commmax*1000 << " ms" << std::endl;
@@ -332,7 +383,10 @@ void casvm(				std::vector<int> &rowidx,
 			MPI_Reduce(&matcpyagg, &matcpymax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 			
 			if(rank == 0){
-				std::cout << "Sampling and extraction time: " << std::setprecision(3) << std::fixed << (matcpymax-grammax)*1000 << " ms" << std::endl;
+				if(s == 1)
+					std::cout << "Sampling and extraction time: " << std::setprecision(3) << std::fixed << (matcpymax-grammax)*1000 << " ms" << std::endl;
+				else
+					std::cout << "Sampling and extraction time: " << std::setprecision(3) << std::fixed << (matcpymax)*1000 << " ms" << std::endl;
 				std::cout << "Gram Matrix computation time: " << grammax*1000 << " ms" << std::endl;
 				std::cout << "Inner loop computation time: " << innermax*1000 << " ms" << std::endl;
 				std::cout << "MPI_Allreduce time: " << commmax*1000 << " ms" << std::endl;
@@ -420,32 +474,71 @@ int main(int argc, char* argv[])
 	int ysize = y.size();
 	//std::cout << "y.size() " << y.size() << std::endl;
 	MPI_Allgather(&ysize, 1, MPI_INT, &ylen[0], 1, MPI_INT, MPI_COMM_WORLD);
-	
-	ysize = (ylen[0] > n) ? n: ylen[0];
-	ylen[0] = ysize;
+	/*
+	if(rank == 0){
+		int ydim = 0;
+		for(int i = 0; i < npes; ++i){
+			std::cout << "ylen[" << i << "] = " << ylen[i] << std::endl;
+			ydim += ylen[i];
+		}
+		std::cout << "ydim = " << ydim << std::endl;
+	}
+	*/
+	//ysize = (ylen[0] > m) ? m: ylen[0];
+	//ylen[0] = ysize;
 
 	//if(rank == 0)
 	//std::cout << "ylen.back() " << ylen[0] << std::endl;
+	//if(rank == 0)
+	//	std::cout << "ydispl = ";
+	
 	for(int i = 1; i < npes; ++i){
-		if(ysize < n){
+		//if(ysize < m){
 			ydispl[i] = ydispl[i-1] + ylen[i-1];
-			ysize += ylen[i];
-			if(ysize > n){
-				ylen[i] -= (ysize - n);
-			}
-		}
-		else{
-			ylen[i] = 0;
-			ydispl[i] = ydispl[i-1];
-		}
-		//if(rank == 0)
-		//std::cout << "ylen.back() " << ylen[i] << std::endl;
+		//	ysize += ylen[i];
+		//	if(ysize > m){
+		//		ylen[i] -= (ysize - n);
+		//	}
+		//}
+		//else{
+		//	ylen[i] = 0;
+		//	ydispl[i] = ydispl[i-1];
+		//}
+	//	if(rank == 0)
+	//		std::cout << ydispl[i] << ' ';
 	}
+	//if(rank == 0)
+	//	std::cout << std::endl;
 
-	std::vector<double> gathered_y(n, 0.);
+	std::vector<double> gathered_y(m, 0.);
 	MPI_Allgatherv(&y[0], ylen[rank], MPI_DOUBLE, &gathered_y[0], &ylen[0], &ydispl[0], MPI_DOUBLE, MPI_COMM_WORLD);
+	//MPI_Finalize();
+	//return 0;
+	std::string trans = "_trans";
+	std::string std_fname(fname);
+	std_fname += trans;
+	if(rank == 0)
+		std::cout << std_fname << std::endl;
+	
+	if(rank == 0)
+		std::cout << "Started reading transposed file" << std::endl;
+	lines = libsvmread(std_fname.c_str(), n, m);
+	if(rank == 0)
+		std::cout << "Finished reading transposed file" << std::endl;
 
+	if(rank == 0)
+		std::cout << "Started Parsing" << std::endl;
+	rowidx.clear(); colidx.clear(); vals.clear();
+	parse_lines_to_csr(lines, rowidx, colidx, vals, y, dual_method, n, m);
+	if(rank == 0)
+		std::cout << "Finished Parsing" << std::endl;
+	
 	y = gathered_y;
+	if(rank == 0)
+		std::cout << "ydim = " << y.size() << std::endl;
+	
+	//MPI_Finalize();
+	//return 0;
 	//for(int i = 0; i < y.size(); ++i)
 	//	std::cout << y[i] << std::endl;
 	//std::cout << std::endl;
@@ -455,13 +548,17 @@ int main(int argc, char* argv[])
 	double algst, algstp;
 	double *w;
 	int ncols = rowidx.size()-1;
+	//std::cout << "w.len() = " << ncols << std::endl;
+	//std::cout << "first val = " << vals[0] << std::endl;
 	assert(0==Malloc_aligned(double, w, ncols, ALIGN));
 	
-	int s_lim = 1;
+	int s_lim = 10;
 	std::cout << std::setprecision(4) << std::fixed;
 	
 	s = 1;
 	for(int j = 0; j <s_lim; ++j){
+		if(s > m)
+			break;
 		if(rank == 0){
 			std::cout << std::endl << std::endl;
 			std::cout << "s = " << s << std::endl;
@@ -471,7 +568,7 @@ int main(int argc, char* argv[])
 		algst = MPI_Wtime();
 		for(int i = 0; i < niter; ++i){
 			//cabcd(localX, n, m, localy, cnts2[rank], lambda, s, b, maxit, tol, seed, freq, w, comm);
-			casvm(rowidx, colidx, vals, m, n, y, ncols, lambda, s, maxit, tol, seed, freq, w,comm);
+			casvm(rowidx, colidx, vals, n, m, y, ncols, lambda, s, maxit, tol, seed, freq, w,comm);
 		}
 		algstp = MPI_Wtime();
 		double algmaxt = 1000*(algstp - algst)/niter;
