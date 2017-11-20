@@ -14,7 +14,8 @@ default : all
 all : $(targets)
 
 bench_svmread : bench_svmread.o util.o
-	$(CC) -o $@ $^ $(LDLIBS)
+	$(CC) -o $@ $^ $(LDLIBS) -shared
+	ar -crf libutil.a util.o 
 
 %.o : %.cxx util.h
 	$(CC) -c $(CXXFLAGS) $<
