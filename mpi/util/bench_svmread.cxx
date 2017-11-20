@@ -35,7 +35,7 @@ int main(int argc, char* argv[]){
 	std::vector<int> rowidx, colidx;
 	std::vector<double> y, vals;
 	parse_lines_to_csr(lines, rowidx, colidx, vals, y, dual_method, m, n);
-		std::cout << std::setprecision(3) << std::fixed;
+		std::cout << "y.size() " << y.size() << std::endl << std::setprecision(3) << std::fixed;
 		for(int i = 0; i < y.size(); ++i)
 			std::cout << y[i] << std::endl;
 		std::cout << std::endl;

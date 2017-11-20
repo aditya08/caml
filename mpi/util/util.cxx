@@ -140,6 +140,15 @@ void libsvmwrite(std::vector<int> &rowidx, std::vector<int> &colidx, std::vector
 			lines += '\n';
 	}
 
+	ss.str("");
+
+	if(y.size() >= rowidx.size()-1){
+		for(int i = n; i < y.size(); ++i){
+			ss << y[i] ;
+			lines += ss.str() + '\n';
+			ss.str("");
+		}
+	}
 	MPI_File out;
 	long int ierr = MPI_File_open(MPI_COMM_WORLD, fname, MPI_MODE_CREATE|MPI_MODE_WRONLY, MPI_INFO_NULL, &out);
 
@@ -387,6 +396,8 @@ void parse_lines_to_csr(std::string lines, std::vector<int> &rowidx, std::vector
 			}
 			new_rowidx.push_back(rownnz + new_rowidx.back());
 			rownnz = 0;
+			if((i+1) % 1000 == 0 || (i+1) == n)
+				std::cout << "column " << i+1 << "/" << n << " transposed." << std::endl;
 		}
 
 		//recv_cols = trans_cols;
