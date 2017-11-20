@@ -552,7 +552,11 @@ int main(int argc, char* argv[])
 	//std::cout << "first val = " << vals[0] << std::endl;
 	assert(0==Malloc_aligned(double, w, ncols, ALIGN));
 	
+<<<<<<< HEAD
 	int s_lim = 10;
+=======
+	int s_lim = 7;
+>>>>>>> 905016b76680669fb7ba4f52e643442afdec4022
 	std::cout << std::setprecision(4) << std::fixed;
 	
 	s = 1;
