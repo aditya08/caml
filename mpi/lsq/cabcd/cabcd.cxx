@@ -152,6 +152,12 @@ void cabcd(				std::vector<int> &rowidx,
 					//std::cout << "currently i = " << i << std::endl;
 					sampcolidx.push_back(k+1);
 					sampvals.push_back(tval);
+					if(s == 1 && b == 1){
+						gramst = MPI_Wtime();
+						G[0] += tval*tval;
+						gramstp = MPI_Wtime();
+						gramagg += gramstp - gramst;
+					}
 					//std::cout << "Incrementing samprowidx[" << i << "] to " << samprowidx[i] + 1 << std::endl;
 					samprowidx[i]++;
 				}
@@ -174,10 +180,12 @@ void cabcd(				std::vector<int> &rowidx,
 	//	std::cout << "sampcolidx length = " << sampcolidx.size() << std::endl;
 	//	std::cout << "norws = " << samprowidx.size() - 1 << std::endl;
 	//}
-	gramst = MPI_Wtime();
-	mkl_dcsrmultd(&transb, &len, &gram_size, &gram_size, &sampvals[0], &sampcolidx[0], &samprowidx[0],  &sampvals[0], &sampcolidx[0], &samprowidx[0], G, &gram_size);
-	gramstp = MPI_Wtime();
-	gramagg += gramstp - gramst;
+	if(s > 1 || b > 1){
+		gramst = MPI_Wtime();
+		mkl_dcsrmultd(&transb, &len, &gram_size, &gram_size, &sampvals[0], &sampcolidx[0], &samprowidx[0],  &sampvals[0], &sampcolidx[0], &samprowidx[0], G, &gram_size);
+		gramstp = MPI_Wtime();
+		gramagg += gramstp - gramst;
+	}
 	
 
 	resst = MPI_Wtime();
@@ -372,7 +380,7 @@ void cabcd(				std::vector<int> &rowidx,
 				MPI_Reduce(&inneragg, &innermax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 				MPI_Reduce(&commagg, &commmax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 				if(rank == 0){
-					std::cout << "Sampling and extraction time: " << matcpymax*1000 << " ms" << std::endl;
+					std::cout << "Sampling and extraction time: " << (matcpymax-grammax)*1000 << " ms" << std::endl;
 					std::cout << "Gram Matrix computation time: " << grammax*1000 << " ms" << std::endl;
 					std::cout << "Residual computation time: " << resmax*1000 << " ms" << std::endl;
 					std::cout << "Inner loop computation time: " << innermax*1000 << " ms" << std::endl;
@@ -461,7 +469,7 @@ void cabcd(				std::vector<int> &rowidx,
 					MPI_Reduce(&matcpyagg, &matcpymax, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 					if(rank == 0){
 						std::cout << "CA-BCD converged with residual: " << std::scientific << resnrm << std::setprecision(4) << std::fixed << " At outer iteration: " << iter/s << std::endl;
-						std::cout << "Sampling and extraction time: " << matcpymax*1000 << " ms" << std::endl;
+						std::cout << "Sampling and extraction time: " << (matcpymax - grammax)*1000 << " ms" << std::endl;
 						std::cout << "Gram Matrix computation time: " << grammax*1000 << " ms" << std::endl;
 						std::cout << "Residual computation time: " << resmax*1000 << " ms" << std::endl;
 						std::cout << "Inner loop computation time: " << innermax*1000 << " ms" << std::endl;
@@ -594,7 +602,7 @@ int main (int argc, char* argv[])
 	}*/
 
 	s = 1;
-	b = 2;
+	b = 1;
 	for(int k = 0; k < 2; ++k){
 		if(b > n)
 			continue;
@@ -633,7 +641,7 @@ int main (int argc, char* argv[])
 			s *= 2;
 		}
 		s = 1;
-		b *= 4;
+		b *= 2;
 	}
 	/*
 	if(rank == 0){
