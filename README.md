@@ -1,5 +1,5 @@
 # CA-ML (Not Ready for Release)
-A collection of Communication-Avoiding Machine Learning (CA-ML) algorithms for (currently) ridge regression.
+A collection of Communication-Avoiding Machine Learning (CA-ML) algorithms for ridge regression, proximal least-squares, and support vector machines.
 Protected by a two-clause BSD License.
 
 ### Dependencies
