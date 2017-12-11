@@ -1,4 +1,4 @@
-# CA-ML (Not Ready for Release)
+# Synchronization-Avoiding Machine Learning
 A collection of Communication-Avoiding Machine Learning (CA-ML) algorithms for ridge regression, proximal least-squares, and support vector machines.
 Protected by a three-clause BSD License.
 
