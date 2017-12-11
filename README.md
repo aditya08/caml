@@ -1,5 +1,5 @@
 # Synchronization-Avoiding Machine Learning
-A collection of Communication-Avoiding Machine Learning (CA-ML) algorithms for ridge regression, proximal least-squares, and support vector machines.
+A collection of Synchronization-Avoiding Machine Learning (SA-ML) algorithms for ridge regression, proximal least-squares, and support vector machines.
 Protected by a three-clause BSD License.
 
 ### Library Dependencies
