@@ -9,4 +9,4 @@ BLAS, LAPACK, and MPI.
 Instructions and build scripts coming soon.
 
 Written and maintained by Aditya Devarakonda (University of California, Berkeley). 
-Please email aditya@eecs.berkeley.edu for questions or requests.
+Please email aditya@wfu.edu for questions or requests.
