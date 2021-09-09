@@ -1,4 +1,4 @@
-# Communication-Avoiding Machine Learning
+# CAML:Communication-Avoiding Machine Learning
 A collection of Synchronization-Avoiding Machine Learning (SA-ML) algorithms for ridge regression, proximal least-squares, and support vector machines.
 Released under a three-clause BSD License.
 
